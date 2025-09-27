@@ -1,0 +1,14 @@
+{
+  "Colors": {
+    "primary": "#771510",
+    "secondary": "#f0e5cb",
+    "tertiary": "#002a74",
+    "quaternary": "#00253d",
+    "quinary": "#b45d59"
+  },
+  "Text Style": {
+    "Main Style": "Lora",
+    "Second Style": "Raleway",
+    "Third Style": "Montserrat"
+  }
+}

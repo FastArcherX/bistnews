@@ -1,0 +1,36 @@
+/* Bootstrap Reset - Complete Override */
+
+/* Remove all Bootstrap interference */
+* {
+  font-family: 'Raleway', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif !important;
+}
+
+/* Force our navigation styles */
+.navbar, .navbar-nav, .nav-link, .navbar-brand, .navbar-toggle, .navbar-collapse {
+  all: unset !important;
+}
+
+/* Force our button styles */
+.btn, .btn-primary, .btn-secondary, .btn-outline {
+  all: unset !important;
+}
+
+/* Force our container styles */
+.container, .container-fluid {
+  all: unset !important;
+}
+
+/* Force our card styles */
+.card, .card-body, .card-title, .card-text {
+  all: unset !important;
+}
+
+/* Apply our styles after reset */
+nav.app-navbar {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  z-index: 1000 !important;
+}
