@@ -5,21 +5,317 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BISTnews - Giornale Scolastico</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Raleway:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; }
-        .navbar-brand { font-weight: bold; }
-        .hero-section { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 80px 0; }
-        .article-card { transition: transform 0.2s; cursor: pointer; }
-        .article-card:hover { transform: translateY(-5px); }
-        .admin-section { margin-top: 30px; }
-        .upload-area { border: 2px dashed #ddd; padding: 40px; text-align: center; margin: 20px 0; }
-        .pdf-viewer { width: 100%; height: 600px; border: none; }
-        .announcement { background: #f8f9fa; border-left: 4px solid #007bff; padding: 15px; margin: 10px 0; }
-        .no-cache { cache-control: no-cache; }
+        :root {
+            --primary-color: #771510;
+            --secondary-color: #f0e5cb;
+            --tertiary-color: #002a74;
+            --quaternary-color: #00253d;
+            --quinary-color: #b45d59;
+            --font-main: 'Lora', serif;
+            --font-secondary: 'Raleway', sans-serif;
+            --font-tertiary: 'Montserrat', sans-serif;
+        }
+        
+        body {
+            font-family: var(--font-tertiary);
+            color: var(--quaternary-color);
+            background-color: #fafafa;
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--quaternary-color) 100%);
+            box-shadow: 0 4px 12px rgba(119, 21, 16, 0.3);
+            padding: 1rem 0;
+        }
+        
+        .navbar-brand {
+            font-family: var(--font-main);
+            font-weight: 700;
+            font-size: 2rem;
+            color: var(--secondary-color) !important;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .nav-link {
+            font-family: var(--font-secondary);
+            font-weight: 500;
+            color: var(--secondary-color) !important;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .nav-link:hover {
+            color: #fff !important;
+            transform: translateY(-2px);
+        }
+        
+        .nav-link:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--secondary-color);
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover:after {
+            width: 100%;
+        }
+        
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--tertiary-color) 50%, var(--quaternary-color) 100%);
+            color: var(--secondary-color);
+            padding: 120px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="20" cy="20" r="1" fill="%23ffffff" opacity="0.1"/><circle cx="80" cy="80" r="1" fill="%23ffffff" opacity="0.1"/><circle cx="40" cy="60" r="1" fill="%23ffffff" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+        }
+        
+        .hero-title {
+            font-family: var(--font-main);
+            font-size: 4.5rem;
+            font-weight: 700;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.4);
+            margin-bottom: 1.5rem;
+        }
+        
+        .hero-subtitle {
+            font-family: var(--font-secondary);
+            font-size: 1.4rem;
+            font-weight: 300;
+            opacity: 0.9;
+        }
+        
+        .section-title {
+            font-family: var(--font-main);
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 2rem;
+            position: relative;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--quinary-color));
+            border-radius: 2px;
+        }
+        
+        .article-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(119, 21, 16, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            overflow: hidden;
+        }
+        
+        .article-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 40px rgba(119, 21, 16, 0.2);
+        }
+        
+        .article-card .card-title {
+            font-family: var(--font-main);
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .article-card .card-text {
+            font-family: var(--font-tertiary);
+            color: var(--quaternary-color);
+            line-height: 1.6;
+        }
+        
+        .announcement {
+            background: linear-gradient(135deg, var(--secondary-color) 0%, #fff 100%);
+            border-left: 5px solid var(--quinary-color);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 4px 15px rgba(180, 93, 89, 0.1);
+        }
+        
+        .announcement.priority-high {
+            border-left-color: var(--primary-color);
+            background: linear-gradient(135deg, #ffe6e6 0%, #fff 100%);
+        }
+        
+        .announcement h6 {
+            font-family: var(--font-secondary);
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--quinary-color) 100%);
+            border: none;
+            font-family: var(--font-secondary);
+            font-weight: 500;
+            padding: 12px 30px;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--quinary-color) 0%, var(--primary-color) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(119, 21, 16, 0.3);
+        }
+        
+        .btn-outline-primary {
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            font-family: var(--font-secondary);
+            font-weight: 500;
+            padding: 10px 25px;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-outline-primary:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .admin-section {
+            margin-top: 40px;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 25px rgba(0, 42, 116, 0.1);
+        }
+        
+        .upload-area {
+            border: 3px dashed var(--quinary-color);
+            padding: 50px;
+            text-align: center;
+            margin: 25px 0;
+            border-radius: 15px;
+            background: linear-gradient(135deg, var(--secondary-color) 0%, #fff 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .upload-area:hover {
+            border-color: var(--primary-color);
+            background: linear-gradient(135deg, #fff 0%, var(--secondary-color) 100%);
+        }
+        
+        .nav-tabs .nav-link {
+            font-family: var(--font-secondary);
+            font-weight: 500;
+            color: var(--tertiary-color);
+            border: none;
+            border-bottom: 3px solid transparent;
+            background: none;
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+            background: none;
+        }
+        
+        .form-label {
+            font-family: var(--font-secondary);
+            font-weight: 500;
+            color: var(--tertiary-color);
+        }
+        
+        .form-control {
+            border: 2px solid #e8ecef;
+            border-radius: 10px;
+            padding: 12px 15px;
+            font-family: var(--font-tertiary);
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            border-color: var(--quinary-color);
+            box-shadow: 0 0 0 0.2rem rgba(180, 93, 89, 0.25);
+        }
+        
+        .footer {
+            background: linear-gradient(135deg, var(--quaternary-color) 0%, var(--tertiary-color) 100%);
+            color: var(--secondary-color);
+            font-family: var(--font-secondary);
+        }
+        
+        .pdf-preview {
+            position: relative;
+            background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+            border-radius: 20px;
+            padding: 40px;
+            margin: 30px 0;
+            color: white;
+            overflow: hidden;
+        }
+        
+        .pdf-preview::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 200px;
+            height: 200px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            transform: translate(50%, -50%);
+        }
+        
+        .comment-section {
+            background: var(--secondary-color);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+        
+        .comment {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid var(--quinary-color);
+        }
+        
+        .no-cache {
+            cache-control: no-cache;
+        }
+        
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 3rem;
+            }
+            .navbar-brand {
+                font-size: 1.5rem;
+            }
+        }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg">
         <div class="container">
             <a class="navbar-brand" href="#" onclick="showPage('home')">BISTnews</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -51,7 +347,7 @@
         <!-- Content will be injected here -->
     </div>
 
-    <footer class="bg-dark text-white text-center py-4 mt-5">
+    <footer class="footer text-center py-4 mt-5">
         <div class="container">
             <p>&copy; 2024 BISTnews - Tutti i diritti riservati</p>
         </div>
