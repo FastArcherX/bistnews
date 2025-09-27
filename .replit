@@ -23,7 +23,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run dev"
+args = "http-server dist -p 5000 -a 0.0.0.0 -c-1"
 waitForPort = 5000
 
 [workflows.workflow.metadata]
@@ -32,6 +32,10 @@ outputType = "webview"
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 46113
+externalPort = 3000
 
 [deployment]
 deploymentTarget = "autoscale"

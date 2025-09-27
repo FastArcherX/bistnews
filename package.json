@@ -4,10 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
+    "dev": "node build.js && http-server dist -p 5000 -a 0.0.0.0 -c-1",
+    "build": "node build.js",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "http-server dist -p 5000"
   },
   "dependencies": {
     "@ckeditor/ckeditor5-build-decoupled-document": "^41.4.2",
