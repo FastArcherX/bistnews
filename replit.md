@@ -1,74 +1,62 @@
-# BISTnews - School Newspaper Platform
+# BISTnews - Giornale Scolastico
 
-## Overview
-BISTnews is a React/TypeScript web application for managing a school newspaper. The project features a modern frontend built with Vite, React Router for navigation, Firebase for backend services, and Bootstrap for styling.
+## Panoramica del Progetto
+BISTnews è un'applicazione web per un giornale scolastico costruita con React, TypeScript, Vite e Firebase. L'applicazione include funzionalità per la gestione degli articoli, autenticazione utenti e un'area amministrativa.
 
-## Current State
-- **Status**: Development server running on port 5000
-- **Environment**: Configured for Replit with proper host binding (0.0.0.0:5000)
-- **Build System**: Vite with React plugin
-- **Known Issue**: esbuild EPIPE errors during dependency scanning (non-blocking for server operation)
+## Stato Attuale
+- ✅ Server di sviluppo Vite configurato e funzionante su porta 5000
+- ✅ Dipendenze installate e risolte
+- ✅ Workflow configurato per l'ambiente Replit
+- ✅ Configurazione di deployment impostata
+- ⚠️ Problema noto: errori EPIPE esbuild durante la trasformazione dei file (server funziona ma con avvisi)
 
-## Recent Changes
-- **2025-09-27**: Initial Replit environment setup
-  - Configured Vite for Replit host requirements
-  - Set up development workflow on port 5000
-  - Deployed with autoscale configuration
-  - Resolved npm dependency installation issues
-  - Applied workaround for esbuild compatibility issues
+## Architettura del Progetto
+```
+src/
+├── components/          # Componenti React riutilizzabili
+│   ├── Footer.tsx
+│   ├── Navbar.tsx
+│   └── ProtectedRoute.tsx
+├── hooks/              # Custom hooks
+│   └── useAuth.ts
+├── pages/              # Pagine dell'applicazione
+│   ├── admin/          # Area amministrativa
+│   │   ├── AnnouncementEditor.tsx
+│   │   ├── ArticleEditor.tsx
+│   │   ├── ArticleManager.tsx
+│   │   ├── MessageViewer.tsx
+│   │   └── PdfManager.tsx
+│   ├── AdminPage.tsx
+│   ├── ArticlePage.tsx
+│   ├── ContactPage.tsx
+│   ├── CreditsPage.tsx
+│   ├── HomePage.tsx
+│   └── LoginPage.tsx
+├── App.tsx             # Componente principale
+├── firebase.ts         # Configurazione Firebase
+└── main.jsx           # Entry point (convertito da TSX per compatibilità)
+```
 
-## Project Architecture
+## Tecnologie Utilizzate
+- **Frontend**: React 19.1.1, TypeScript, Vite 7.1.7
+- **Styling**: Bootstrap 5.3.8, React Bootstrap
+- **Backend**: Firebase (Auth, Database, Storage)
+- **Editor**: CKEditor 5
+- **Routing**: React Router DOM
+- **Animations**: Framer Motion
+- **PDF**: React PDF
 
-### Frontend Structure
-- **Framework**: React 19 with TypeScript
-- **Build Tool**: Vite 7.1.7
-- **Routing**: React Router DOM for SPA navigation
-- **Styling**: Bootstrap 5.3 + custom CSS
-- **State Management**: React hooks and context
+## Configurazione per Replit
+- Server Vite configurato per bind su 0.0.0.0:5000
+- Workflow impostato per esecuzione automatica
+- Deployment configurato per autoscale
 
-### Key Components
-- `src/components/`: Reusable UI components (Navbar, Footer, ProtectedRoute)
-- `src/pages/`: Page components including admin panel
-- `src/hooks/`: Custom React hooks (useAuth)
-- `src/firebase.ts`: Firebase configuration and services
+## Problemi Noti
+- Errori EPIPE esbuild durante la trasformazione: il server funziona ma mostra avvisi
+- Conversione da main.tsx a main.jsx per evitare problemi di compatibilità
 
-### Firebase Integration
-- **Authentication**: User login/signup system
-- **Database**: Realtime Database for content storage
-- **Storage**: File uploads for images and PDFs
-- **Configuration**: Pre-configured with project credentials
-
-### Dependencies
-- **UI Libraries**: React Bootstrap, Bootstrap, CKEditor, DND Kit
-- **Development**: ESLint, TypeScript, Vite plugins
-- **Firebase**: Full Firebase SDK for web
-
-## Development Workflow
-
-### Running the Application
-- Development server: `vite --host 0.0.0.0 --port 5000 --force`
-- The server runs on port 5000 and is accessible via Replit's webview
-- Hot module replacement is enabled for development
-
-### Known Limitations
-- **esbuild EPIPE Error**: Dependency scanning occasionally fails but doesn't prevent server operation
-- **Workaround Applied**: Using `--force` flag to skip problematic pre-bundling
-- **Impact**: Minimal - application functionality remains intact
-
-### Deployment
-- **Target**: Autoscale deployment for static/SPA applications
-- **Build Command**: `npm run build`
-- **Run Command**: Configured for production Vite serving
-
-## User Preferences
-- **Development Style**: Modern React with TypeScript
-- **Architecture**: Component-based with clear separation of concerns
-- **Styling**: Bootstrap-based responsive design
-- **Backend**: Firebase for all backend services
-
-## Next Steps
-1. Address esbuild compatibility issues for optimal performance
-2. Test all application routes and Firebase integration
-3. Configure environment variables for production deployment
-4. Implement content management features
-5. Set up user authentication flow
+## Modifiche Recenti
+- Configurazione Vite per ambiente Replit
+- Risoluzione problemi dipendenze npm
+- Setup workflow di sviluppo
+- Configurazione deployment
