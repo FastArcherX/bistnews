@@ -1011,6 +1011,19 @@ async function handleAddAnnouncement(event) {
     }
 }
 
+async function deleteAnnouncement(id) {
+    if (confirm('Sei sicuro di voler eliminare questo annuncio?')) {
+        try {
+            await deleteAnnouncementFromDB(id);
+            alert('Annuncio eliminato con successo!');
+            await loadAllData();
+            showPage('admin');
+        } catch (error) {
+            alert('Errore durante l\'eliminazione: ' + error.message);
+        }
+    }
+}
+
 // Comments system
 function showComments(itemType, itemId) {
     // Create modal for comments

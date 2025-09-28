@@ -94,7 +94,8 @@ dist/magazine/
 - ✅ **Homepage con preview aperta** - Prima pagina articolo visibile direttamente
 - ✅ **Visualizzatore PDF completo** - Navigazione libro con controlli destra/sinistra
 - ✅ **Sezione contatti strutturata** - Fondatore, Admin, Moderatori come da design
-- ✅ **Sistema commenti** per tutti i contenuti
+- ✅ **Sistema commenti real-time** - Conteggio dinamico da Firebase
+- ✅ **Tracciamento visualizzazioni** - Sistema analytics integrato
 - ✅ **Responsive design** ottimizzato
 
 ### LATO ADMIN:
@@ -103,3 +104,4 @@ dist/magazine/
 - ✅ **Editor annunci** con priorità e rich text
 - ✅ **Gestione messaggi** ricevuti
 - ✅ **Pubblicazione immediata/programmata** per tutti i contenuti
+- ✅ **Analytics completi** - Visualizzazioni e commenti in tempo reale
