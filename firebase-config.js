@@ -1,8 +1,8 @@
 // Firebase integration for BISTnews
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import { getAuth, signInWithRedirect, GoogleAuthProvider, getRedirectResult, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, orderBy, query, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+import { getDatabase, ref, push, set, get, remove, onValue, child } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js";
 
 // Firebase configuration using environment variables
 const firebaseConfig = {
@@ -16,34 +16,38 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
+const database = getDatabase(app);
 const storage = getStorage(app);
-const provider = new GoogleAuthProvider();
 
 // Auth functions
-window.loginAdmin = async function() {
+window.loginAdmin = async function(email, password) {
     try {
-        await signInWithRedirect(auth, provider);
-    } catch (error) {
-        console.error('Login error:', error);
-        alert('Errore durante l\'accesso: ' + error.message);
-    }
-};
-
-// Handle redirect result
-getRedirectResult(auth).then((result) => {
-    if (result) {
-        const user = result.user;
-        console.log('User logged in:', user.displayName);
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        console.log('User logged in:', user.email);
         window.currentUser = user;
         window.isAdmin = true;
         if (window.currentPage === 'admin') {
             window.checkAdminAuth();
         }
+        return true;
+    } catch (error) {
+        console.error('Login error:', error);
+        throw new Error('Credenziali non valide');
     }
-}).catch((error) => {
-    console.error('Redirect error:', error);
-});
+};
+
+window.registerAdmin = async function(email, password) {
+    try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        console.log('User registered:', user.email);
+        return true;
+    } catch (error) {
+        console.error('Registration error:', error);
+        throw new Error('Errore durante la registrazione: ' + error.message);
+    }
+};
 
 // Listen for auth state changes
 onAuthStateChanged(auth, (user) => {
@@ -64,7 +68,7 @@ onAuthStateChanged(auth, (user) => {
 
 window.logoutAdmin = async function() {
     try {
-        await auth.signOut();
+        await signOut(auth);
         window.currentUser = null;
         window.isAdmin = false;
         window.checkAdminAuth();
@@ -73,15 +77,17 @@ window.logoutAdmin = async function() {
     }
 };
 
-// Firestore functions
+// Realtime Database functions
 window.saveAnnouncement = async function(announcement) {
     try {
-        const docRef = await addDoc(collection(db, "announcements"), {
+        const announcementsRef = ref(database, 'announcements');
+        const newAnnouncementRef = push(announcementsRef);
+        await set(newAnnouncementRef, {
             ...announcement,
-            createdAt: new Date(),
+            createdAt: Date.now(),
             authorId: window.currentUser?.uid
         });
-        return docRef.id;
+        return newAnnouncementRef.key;
     } catch (error) {
         console.error('Error saving announcement:', error);
         throw error;
@@ -90,12 +96,16 @@ window.saveAnnouncement = async function(announcement) {
 
 window.loadAnnouncements = async function() {
     try {
-        const q = query(collection(db, "announcements"), orderBy("createdAt", "desc"));
-        const querySnapshot = await getDocs(q);
-        return querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
+        const announcementsRef = ref(database, 'announcements');
+        const snapshot = await get(announcementsRef);
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            return Object.keys(data).map(key => ({
+                id: key,
+                ...data[key]
+            })).sort((a, b) => b.createdAt - a.createdAt);
+        }
+        return [];
     } catch (error) {
         console.error('Error loading announcements:', error);
         return [];
@@ -104,50 +114,70 @@ window.loadAnnouncements = async function() {
 
 window.deleteAnnouncementFromDB = async function(id) {
     try {
-        await deleteDoc(doc(db, "announcements", id));
+        const announcementRef = ref(database, `announcements/${id}`);
+        await remove(announcementRef);
     } catch (error) {
         console.error('Error deleting announcement:', error);
         throw error;
     }
 };
 
-window.savePdf = async function(pdfData) {
+// Articles management (PDF folders)
+window.saveArticle = async function(articleData) {
     try {
-        const docRef = await addDoc(collection(db, "pdfs"), {
-            ...pdfData,
-            createdAt: new Date(),
+        const articlesRef = ref(database, 'articles');
+        const newArticleRef = push(articlesRef);
+        await set(newArticleRef, {
+            ...articleData,
+            createdAt: Date.now(),
             authorId: window.currentUser?.uid
         });
-        return docRef.id;
+        return newArticleRef.key;
     } catch (error) {
-        console.error('Error saving PDF:', error);
+        console.error('Error saving article:', error);
         throw error;
     }
 };
 
-window.loadPdfs = async function() {
+window.loadArticles = async function() {
     try {
-        const q = query(collection(db, "pdfs"), orderBy("createdAt", "desc"));
-        const querySnapshot = await getDocs(q);
-        return querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
-    } catch (error) {
-        console.error('Error loading PDFs:', error);
+        const articlesRef = ref(database, 'articles');
+        const snapshot = await get(articlesRef);
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            return Object.keys(data).map(key => ({
+                id: key,
+                ...data[key]
+            })).sort((a, b) => b.createdAt - a.createdAt);
+        }
         return [];
+    } catch (error) {
+        console.error('Error loading articles:', error);
+        return [];
+    }
+};
+
+window.deleteArticle = async function(id) {
+    try {
+        const articleRef = ref(database, `articles/${id}`);
+        await remove(articleRef);
+    } catch (error) {
+        console.error('Error deleting article:', error);
+        throw error;
     }
 };
 
 window.saveComment = async function(itemType, itemId, comment) {
     try {
-        const docRef = await addDoc(collection(db, "comments"), {
+        const commentsRef = ref(database, 'comments');
+        const newCommentRef = push(commentsRef);
+        await set(newCommentRef, {
             itemType: itemType,
             itemId: itemId,
             ...comment,
-            createdAt: new Date()
+            createdAt: Date.now()
         });
-        return docRef.id;
+        return newCommentRef.key;
     } catch (error) {
         console.error('Error saving comment:', error);
         throw error;
@@ -156,14 +186,16 @@ window.saveComment = async function(itemType, itemId, comment) {
 
 window.loadComments = async function(itemType, itemId) {
     try {
-        const q = query(
-            collection(db, "comments"),
-            orderBy("createdAt", "asc")
-        );
-        const querySnapshot = await getDocs(q);
-        return querySnapshot.docs
-            .map(doc => ({ id: doc.id, ...doc.data() }))
-            .filter(comment => comment.itemType === itemType && comment.itemId === itemId);
+        const commentsRef = ref(database, 'comments');
+        const snapshot = await get(commentsRef);
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            return Object.keys(data)
+                .map(key => ({ id: key, ...data[key] }))
+                .filter(comment => comment.itemType === itemType && comment.itemId === itemId)
+                .sort((a, b) => a.createdAt - b.createdAt);
+        }
+        return [];
     } catch (error) {
         console.error('Error loading comments:', error);
         return [];
@@ -172,12 +204,14 @@ window.loadComments = async function(itemType, itemId) {
 
 window.saveMessage = async function(message) {
     try {
-        const docRef = await addDoc(collection(db, "messages"), {
+        const messagesRef = ref(database, 'messages');
+        const newMessageRef = push(messagesRef);
+        await set(newMessageRef, {
             ...message,
-            createdAt: new Date(),
+            createdAt: Date.now(),
             read: false
         });
-        return docRef.id;
+        return newMessageRef.key;
     } catch (error) {
         console.error('Error saving message:', error);
         throw error;
@@ -185,10 +219,10 @@ window.saveMessage = async function(message) {
 };
 
 // Storage functions
-window.uploadPdfFile = async function(file, filename) {
+window.uploadPdfFile = async function(file, folderName, filename) {
     try {
-        const storageRef = ref(storage, `pdfs/${filename}`);
-        const snapshot = await uploadBytes(storageRef, file);
+        const pdfStorageRef = storageRef(storage, `articles/${folderName}/${filename}`);
+        const snapshot = await uploadBytes(pdfStorageRef, file);
         const downloadURL = await getDownloadURL(snapshot.ref);
         return downloadURL;
     } catch (error) {
@@ -197,10 +231,10 @@ window.uploadPdfFile = async function(file, filename) {
     }
 };
 
-window.uploadCoverImage = async function(file, filename) {
+window.uploadCoverImage = async function(file, articleTitle) {
     try {
-        const storageRef = ref(storage, `covers/${filename}`);
-        const snapshot = await uploadBytes(storageRef, file);
+        const coverStorageRef = storageRef(storage, `covers/${articleTitle}_cover.jpg`);
+        const snapshot = await uploadBytes(coverStorageRef, file);
         const downloadURL = await getDownloadURL(snapshot.ref);
         return downloadURL;
     } catch (error) {
@@ -210,4 +244,4 @@ window.uploadCoverImage = async function(file, filename) {
 };
 
 console.log('Firebase integration loaded successfully');
-export { app, auth, db, storage };
+export { app, auth, database, storage };
