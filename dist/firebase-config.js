@@ -4,23 +4,56 @@ import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, on
 import { getDatabase, ref, push, set, get, remove, onValue, child } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js";
 
-// Firebase configuration using environment variables
-const firebaseConfig = {
-    apiKey: window.VITE_FIREBASE_API_KEY,
-    authDomain: `${window.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`,
-    projectId: window.VITE_FIREBASE_PROJECT_ID,
-    storageBucket: `${window.VITE_FIREBASE_PROJECT_ID}.appspot.com`,
-    appId: window.VITE_FIREBASE_APP_ID,
-};
+// Check if Firebase environment variables are configured
+const hasFirebaseConfig = window.VITE_FIREBASE_API_KEY && 
+                          window.VITE_FIREBASE_PROJECT_ID && 
+                          window.VITE_FIREBASE_APP_ID;
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const database = getDatabase(app);
-const storage = getStorage(app);
+let app, auth, database, storage;
+
+if (hasFirebaseConfig) {
+    try {
+        // Firebase configuration using environment variables
+        const firebaseConfig = {
+            apiKey: window.VITE_FIREBASE_API_KEY,
+            authDomain: `${window.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`,
+            databaseURL: `https://${window.VITE_FIREBASE_PROJECT_ID}-default-rtdb.firebaseio.com/`,
+            projectId: window.VITE_FIREBASE_PROJECT_ID,
+            storageBucket: `${window.VITE_FIREBASE_PROJECT_ID}.appspot.com`,
+            appId: window.VITE_FIREBASE_APP_ID,
+        };
+
+        // Initialize Firebase
+        app = initializeApp(firebaseConfig);
+        auth = getAuth(app);
+        database = getDatabase(app);
+        storage = getStorage(app);
+        console.log('Firebase inizializzato correttamente');
+    } catch (error) {
+        console.error('Errore inizializzazione Firebase:', error);
+        console.log('Modalità demo attivata - funzionalità Firebase disabilitate');
+    }
+} else {
+    console.log('Configurazione Firebase non trovata - modalità demo attiva');
+}
 
 // Auth functions
 window.loginAdmin = async function(email, password) {
+    if (!hasFirebaseConfig || !auth) {
+        // Demo mode - accept demo credentials
+        if (email === 'admin@bistnews.com' && password === 'demo123') {
+            console.log('Login demo riuscito');
+            window.currentUser = { email: 'admin@bistnews.com', uid: 'demo-admin' };
+            window.isAdmin = true;
+            if (window.currentPage === 'admin') {
+                window.checkAdminAuth();
+            }
+            return true;
+        } else {
+            throw new Error('Modalità demo: usa admin@bistnews.com / demo123');
+        }
+    }
+    
     try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
@@ -50,25 +83,29 @@ window.registerAdmin = async function(email, password) {
 };
 
 // Listen for auth state changes
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        window.currentUser = user;
-        window.isAdmin = true;
-        if (window.currentPage === 'admin') {
-            window.checkAdminAuth();
+if (hasFirebaseConfig && auth) {
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            window.currentUser = user;
+            window.isAdmin = true;
+            if (window.currentPage === 'admin') {
+                window.checkAdminAuth();
+            }
+        } else {
+            window.currentUser = null;
+            window.isAdmin = false;
+            if (window.currentPage === 'admin') {
+                window.checkAdminAuth();
+            }
         }
-    } else {
-        window.currentUser = null;
-        window.isAdmin = false;
-        if (window.currentPage === 'admin') {
-            window.checkAdminAuth();
-        }
-    }
-});
+    });
+}
 
 window.logoutAdmin = async function() {
     try {
-        await signOut(auth);
+        if (hasFirebaseConfig && auth) {
+            await signOut(auth);
+        }
         window.currentUser = null;
         window.isAdmin = false;
         window.checkAdminAuth();
@@ -77,8 +114,25 @@ window.logoutAdmin = async function() {
     }
 };
 
+// Demo storage for when Firebase is not configured
+window.demoAnnouncements = [];
+window.demoArticles = [];
+window.demoComments = [];
+
 // Realtime Database functions
 window.saveAnnouncement = async function(announcement) {
+    if (!hasFirebaseConfig || !database) {
+        // Demo mode - save to local array
+        const newAnnouncement = {
+            id: 'demo_' + Date.now(),
+            ...announcement,
+            createdAt: Date.now(),
+            authorId: window.currentUser?.uid
+        };
+        window.demoAnnouncements.unshift(newAnnouncement);
+        return newAnnouncement.id;
+    }
+    
     try {
         const announcementsRef = ref(database, 'announcements');
         const newAnnouncementRef = push(announcementsRef);
@@ -95,6 +149,11 @@ window.saveAnnouncement = async function(announcement) {
 };
 
 window.loadAnnouncements = async function() {
+    if (!hasFirebaseConfig || !database) {
+        // Demo mode - return local array
+        return window.demoAnnouncements || [];
+    }
+    
     try {
         const announcementsRef = ref(database, 'announcements');
         const snapshot = await get(announcementsRef);
@@ -113,6 +172,12 @@ window.loadAnnouncements = async function() {
 };
 
 window.deleteAnnouncementFromDB = async function(id) {
+    if (!hasFirebaseConfig || !database) {
+        // Demo mode - remove from local array
+        window.demoAnnouncements = window.demoAnnouncements.filter(a => a.id !== id);
+        return;
+    }
+    
     try {
         const announcementRef = ref(database, `announcements/${id}`);
         await remove(announcementRef);
@@ -124,6 +189,18 @@ window.deleteAnnouncementFromDB = async function(id) {
 
 // Articles management (PDF folders)
 window.saveArticle = async function(articleData) {
+    if (!hasFirebaseConfig || !database) {
+        // Demo mode - save to local array
+        const newArticle = {
+            id: 'demo_' + Date.now(),
+            ...articleData,
+            createdAt: Date.now(),
+            authorId: window.currentUser?.uid
+        };
+        window.demoArticles.unshift(newArticle);
+        return newArticle.id;
+    }
+    
     try {
         const articlesRef = ref(database, 'articles');
         const newArticleRef = push(articlesRef);
@@ -140,6 +217,11 @@ window.saveArticle = async function(articleData) {
 };
 
 window.loadArticles = async function() {
+    if (!hasFirebaseConfig || !database) {
+        // Demo mode - return local array combined with demo data
+        return [...(window.demoArticles || [])];
+    }
+    
     try {
         const articlesRef = ref(database, 'articles');
         const snapshot = await get(articlesRef);
@@ -158,6 +240,16 @@ window.loadArticles = async function() {
 };
 
 window.deleteArticle = async function(id) {
+    if (!hasFirebaseConfig || !database) {
+        // Demo mode - remove from local array and articles array
+        window.demoArticles = window.demoArticles.filter(a => a.id !== id);
+        // Also remove from main articles array if it's there
+        if (window.articles) {
+            window.articles = window.articles.filter(a => a.id !== id);
+        }
+        return;
+    }
+    
     try {
         const articleRef = ref(database, `articles/${id}`);
         await remove(articleRef);
@@ -167,7 +259,58 @@ window.deleteArticle = async function(id) {
     }
 };
 
+window.publishArticle = async function(id) {
+    if (!hasFirebaseConfig || !database) {
+        // Demo mode - update local arrays
+        const article = window.demoArticles.find(a => a.id === id) || window.articles.find(a => a.id === id);
+        if (article) {
+            article.published = true;
+        }
+        return;
+    }
+    
+    try {
+        const articleRef = ref(database, `articles/${id}`);
+        await set(child(articleRef, 'published'), true);
+    } catch (error) {
+        console.error('Error publishing article:', error);
+        throw error;
+    }
+};
+
+window.unpublishArticle = async function(id) {
+    if (!hasFirebaseConfig || !database) {
+        // Demo mode - update local arrays
+        const article = window.demoArticles.find(a => a.id === id) || window.articles.find(a => a.id === id);
+        if (article) {
+            article.published = false;
+        }
+        return;
+    }
+    
+    try {
+        const articleRef = ref(database, `articles/${id}`);
+        await set(child(articleRef, 'published'), false);
+    } catch (error) {
+        console.error('Error unpublishing article:', error);
+        throw error;
+    }
+};
+
 window.saveComment = async function(itemType, itemId, comment) {
+    if (!hasFirebaseConfig || !database) {
+        // Demo mode - save to local array
+        const newComment = {
+            id: 'demo_comment_' + Date.now(),
+            itemType: itemType,
+            itemId: itemId,
+            ...comment,
+            createdAt: Date.now()
+        };
+        window.demoComments.push(newComment);
+        return newComment.id;
+    }
+    
     try {
         const commentsRef = ref(database, 'comments');
         const newCommentRef = push(commentsRef);
@@ -185,6 +328,13 @@ window.saveComment = async function(itemType, itemId, comment) {
 };
 
 window.loadComments = async function(itemType, itemId) {
+    if (!hasFirebaseConfig || !database) {
+        // Demo mode - filter local array
+        return (window.demoComments || [])
+            .filter(comment => comment.itemType === itemType && comment.itemId === itemId)
+            .sort((a, b) => a.createdAt - b.createdAt);
+    }
+    
     try {
         const commentsRef = ref(database, 'comments');
         const snapshot = await get(commentsRef);
@@ -202,7 +352,30 @@ window.loadComments = async function(itemType, itemId) {
     }
 };
 
+window.deleteComment = async function(id) {
+    if (!hasFirebaseConfig || !database) {
+        // Demo mode - remove from local array
+        window.demoComments = window.demoComments.filter(c => c.id !== id);
+        return;
+    }
+    
+    try {
+        const commentRef = ref(database, `comments/${id}`);
+        await remove(commentRef);
+    } catch (error) {
+        console.error('Error deleting comment:', error);
+        throw error;
+    }
+};
+
 window.saveMessage = async function(message) {
+    if (!hasFirebaseConfig || !database) {
+        // Demo mode - just log the message
+        console.log('Messaggio demo salvato:', message);
+        alert('Messaggio inviato correttamente! (modalità demo)');
+        return 'demo_message_' + Date.now();
+    }
+    
     try {
         const messagesRef = ref(database, 'messages');
         const newMessageRef = push(messagesRef);
@@ -242,6 +415,15 @@ window.uploadCoverImage = async function(file, articleTitle) {
         throw error;
     }
 };
+
+// Initialize demo mode notice
+if (!hasFirebaseConfig) {
+    window.addEventListener('DOMContentLoaded', () => {
+        console.log('🚀 BISTnews caricato in modalità DEMO');
+        console.log('📋 Credenziali demo: admin@bistnews.com / demo123');
+        console.log('⚙️ Per abilitare Firebase, configura le variabili d\'ambiente');
+    });
+}
 
 console.log('Firebase integration loaded successfully');
 export { app, auth, database, storage };
