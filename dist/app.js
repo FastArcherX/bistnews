@@ -243,12 +243,12 @@ function getArticlesGrid() {
     
     return articles.filter(a => a.published).map(article => `
         <div class="article-card mb-3" onclick="continueReading('${article.id}')">
-            <div class="row g-0">
+            <div class="row">
                 <div class="col-md-3">
                     <img src="${article.coverImage}" class="article-thumbnail" alt="${article.title}">
                 </div>
                 <div class="col-md-9">
-                    <div class="card-body">
+                    <div class="card-body ps-4">
                         <h5 class="article-title">${article.title}</h5>
                         <p class="article-excerpt">${article.description}</p>
                         <small class="text-muted">
