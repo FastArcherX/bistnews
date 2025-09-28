@@ -23,10 +23,12 @@ async function loadAllData() {
         
         console.log('Loaded articles:', articles.length, 'announcements:', announcements.length);
         
-        // If no data from Firebase, use demo data
-        if (articles.length === 0 && announcements.length === 0) {
-            console.log('No data from Firebase, loading demo data...');
+        // Combine Firebase data with demo data for better user experience
+        if (articles.length === 0) {
+            console.log('No articles from Firebase, loading demo articles...');
             loadDemoData();
+        } else {
+            console.log('Using Firebase data only');
         }
         
         // Load counts asynchronously after data is loaded
@@ -114,15 +116,24 @@ function loadDemoData() {
         }
     ];
     
-    announcements = [
-        {
-            id: 'demo_ann1',
-            title: "Nuovi orari mensa",
-            content: "A partire dal 1° ottobre, la mensa scolastica adotterà i nuovi orari: Pranzo dalle 12:30 alle 14:00, Merenda dalle 15:00 alle 15:30",
-            priority: "high",
-            createdAt: Date.now() - 43200000
-        }
-    ];
+    // Keep Firebase announcements if any, otherwise add demo announcements
+    if (announcements.length === 0) {
+        announcements = [
+            {
+                id: 'demo_ann1',
+                title: "Nuovi orari mensa",
+                content: "A partire dal 1° ottobre, la mensa scolastica adotterà i nuovi orari: Pranzo dalle 12:30 alle 14:00, Merenda dalle 15:00 alle 15:30",
+                priority: "high",
+                createdAt: Date.now() - 43200000
+            }
+        ];
+    }
+    
+    console.log('Demo data loaded, refreshing homepage...');
+    // Refresh the current page to show new data
+    if (window.currentPage) {
+        showPage(window.currentPage);
+    }
 }
 
 // Page Navigation
