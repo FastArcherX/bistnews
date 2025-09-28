@@ -256,13 +256,27 @@
             overflow: hidden;
         }
 
-        .preview-page {
+        .page-container-large {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .preview-page, .preview-page-large {
             width: 100%;
             height: 400px;
             object-fit: cover;
             border-radius: 10px;
             cursor: pointer;
             transition: transform 0.3s ease;
+        }
+
+        .preview-page-large {
+            height: 600px; /* Larger preview for better readability */
+            object-fit: contain; /* Better for reading text */
         }
 
         .preview-page:hover {

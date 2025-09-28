@@ -30,12 +30,13 @@ function loadDemoData() {
         {
             id: 'demo1',
             title: "Benvenuti al nuovo anno scolastico",
+            folderName: "Benvenuti al nuovo anno scolastico",
             description: "Inizia un nuovo entusiasmante anno scolastico al BIST. Scopri tutte le novità e gli eventi in programma.",
-            coverImage: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300",
+            coverImage: "magazine/Benvenuti al nuovo anno scolastico/page1.jpg",
             pages: [
-                "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800",
-                "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800",
-                "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800"
+                "magazine/Benvenuti al nuovo anno scolastico/page1.jpg",
+                "magazine/Benvenuti al nuovo anno scolastico/page2.jpg",
+                "magazine/Benvenuti al nuovo anno scolastico/page3.jpg"
             ],
             createdAt: Date.now() - 86400000,
             published: true
@@ -43,14 +44,15 @@ function loadDemoData() {
         {
             id: 'demo2',
             title: "Progetto sostenibilità ambientale",
+            folderName: "Progetto sostenibilità ambientale",
             description: "La nostra scuola partecipa al progetto di sostenibilità ambientale con nuove iniziative eco-friendly.",
-            coverImage: "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?w=300",
+            coverImage: "magazine/Progetto sostenibilità ambientale/page1.jpg",
             pages: [
-                "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?w=800",
-                "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800"
+                "magazine/Progetto sostenibilità ambientale/page1.jpg",
+                "magazine/Progetto sostenibilità ambientale/page2.jpg"
             ],
             createdAt: Date.now() - 172800000,
-            published: true
+            published: false  // Demo unpublished article
         }
     ];
     
@@ -140,7 +142,7 @@ function getArticlePreviewSection(article) {
     return `
         <div class="article-preview-section">
             <div class="row align-items-center">
-                <div class="col-md-6">
+                <div class="col-md-5">
                     <div class="preview-info">
                         <span class="preview-badge">Ultimo Giornalino</span>
                         <h2 class="preview-title">${article.title}</h2>
@@ -150,12 +152,12 @@ function getArticlePreviewSection(article) {
                         </button>
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-7">
                     <div class="preview-reader">
-                        <div class="page-container">
+                        <div class="page-container-large">
                             <img src="${article.pages?.[0] || article.coverImage}" 
                                  alt="Prima pagina" 
-                                 class="preview-page"
+                                 class="preview-page-large"
                                  onclick="continueReading('${article.id}')">
                             <div class="page-number">1 / ${article.pages?.length || 1}</div>
                         </div>
@@ -404,40 +406,14 @@ function getAdminPage() {
                                 <button type="submit" class="btn btn-primary w-100">Accedi</button>
                             </form>
                             <div class="text-center mt-3">
-                                <small><a href="#" onclick="showRegisterForm()">Non hai un account? Registrati</a></small>
+                                <small class="text-muted">Accesso riservato agli amministratori</small>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <div id="registerSection" style="display: none;">
-                <div class="row justify-content-center">
-                    <div class="col-md-6">
-                        <div class="admin-login-card">
-                            <h3 class="text-center mb-4">Registrazione Admin</h3>
-                            <form onsubmit="handleAdminRegister(event)">
-                                <div class="mb-3">
-                                    <label for="registerEmail" class="form-label">Email</label>
-                                    <input type="email" class="form-control" id="registerEmail" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="registerPassword" class="form-label">Password</label>
-                                    <input type="password" class="form-control" id="registerPassword" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="confirmPassword" class="form-label">Conferma Password</label>
-                                    <input type="password" class="form-control" id="confirmPassword" required>
-                                </div>
-                                <button type="submit" class="btn btn-primary w-100">Registrati</button>
-                            </form>
-                            <div class="text-center mt-3">
-                                <small><a href="#" onclick="showLoginForm()">Hai già un account? Accedi</a></small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <!-- Registration removed - admin accounts managed in Firebase Console -->
             
             <div id="adminPanel" style="display: none;">
                 ${getAdminPanel()}
@@ -467,6 +443,9 @@ function getAdminPanel() {
                 <li class="nav-item">
                     <a class="nav-link" href="#messaggi-tab" data-bs-toggle="tab">Messaggi</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#commenti-tab" data-bs-toggle="tab">Moderazione Commenti</a>
+                </li>
             </ul>
             
             <div class="tab-content mt-4">
@@ -479,6 +458,9 @@ function getAdminPanel() {
                 <div class="tab-pane fade" id="messaggi-tab">
                     ${getMessageManagement()}
                 </div>
+                <div class="tab-pane fade" id="commenti-tab">
+                    ${getCommentModeration()}
+                </div>
             </div>
         </div>
     `;
@@ -488,8 +470,14 @@ function getArticleManagement() {
     return `
         <div class="admin-section">
             <h4>Gestione Articoli PDF</h4>
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> 
+                <strong>Nota:</strong> I file PDF devono essere caricati manualmente nella cartella <code>magazine/[nome-articolo]/</code> del sito.
+                Qui puoi solo gestire la pubblicazione e la visibilità degli articoli.
+            </div>
+            
             <button class="btn btn-primary mb-3" onclick="showAddArticleForm()">
-                <i class="fas fa-plus"></i> Nuovo Articolo
+                <i class="fas fa-plus"></i> Aggiungi Nuovo Articolo
             </button>
             
             <div id="addArticleForm" style="display: none;" class="card mb-4">
@@ -501,25 +489,22 @@ function getArticleManagement() {
                                 <div class="mb-3">
                                     <label class="form-label">Titolo Articolo</label>
                                     <input type="text" class="form-control" id="articleTitle" required>
+                                    <small class="text-muted">Deve corrispondere al nome della cartella in magazine/</small>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Descrizione</label>
                                     <textarea class="form-control" id="articleDescription" rows="3" required></textarea>
                                 </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Immagine di Copertina</label>
-                                    <input type="file" class="form-control" id="articleCover" accept="image/*">
-                                </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label">File PDF (Pagine)</label>
-                                    <input type="file" class="form-control" id="articlePages" accept="application/pdf,image/*" multiple>
-                                    <small class="text-muted">Seleziona più file per creare un articolo multi-pagina</small>
+                                    <label class="form-label">Numero di Pagine</label>
+                                    <input type="number" class="form-control" id="articlePages" min="1" value="1" required>
+                                    <small class="text-muted">Quante pagine ha questo articolo</small>
                                 </div>
                                 <div class="mb-3">
                                     <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="publishNow" checked>
+                                        <input class="form-check-input" type="checkbox" id="publishNow">
                                         <label class="form-check-label" for="publishNow">Pubblica subito</label>
                                     </div>
                                 </div>
@@ -538,7 +523,7 @@ function getArticleManagement() {
                     <div class="admin-item">
                         <div class="row align-items-center">
                             <div class="col-md-2">
-                                <img src="${article.coverImage}" class="admin-thumbnail" alt="${article.title}">
+                                <img src="${article.coverImage}" class="admin-thumbnail" alt="${article.title}" onerror="this.src='https://via.placeholder.com/80x60?text=PDF'">
                             </div>
                             <div class="col-md-6">
                                 <h6>${article.title}</h6>
@@ -546,21 +531,25 @@ function getArticleManagement() {
                                 <small class="text-muted">
                                     ${formatDate(article.createdAt)} • 
                                     ${article.pages?.length || 1} pagine • 
-                                    ${article.published ? 'Pubblicato' : 'Bozza'}
+                                    <span class="badge ${article.published ? 'bg-success' : 'bg-warning'}">${article.published ? 'Pubblicato' : 'Bozza'}</span>
                                 </small>
                             </div>
                             <div class="col-md-4 text-end">
+                                ${article.published ? `
+                                    <button class="btn btn-sm btn-warning me-2" onclick="handleUnpublishArticle('${article.id}')">
+                                        <i class="fas fa-eye-slash"></i> Ritira
+                                    </button>
+                                ` : `
+                                    <button class="btn btn-sm btn-success me-2" onclick="handlePublishArticle('${article.id}')">
+                                        <i class="fas fa-paper-plane"></i> Pubblica
+                                    </button>
+                                `}
                                 <button class="btn btn-sm btn-outline-primary me-2" onclick="editArticle('${article.id}')">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <button class="btn btn-sm btn-outline-danger" onclick="deleteArticle('${article.id}')">
+                                <button class="btn btn-sm btn-outline-danger" onclick="handleDeleteArticle('${article.id}')">
                                     <i class="fas fa-trash"></i>
                                 </button>
-                                ${!article.published ? `
-                                    <button class="btn btn-sm btn-success ms-2" onclick="publishArticle('${article.id}')">
-                                        <i class="fas fa-paper-plane"></i> Pubblica
-                                    </button>
-                                ` : ''}
                             </div>
                         </div>
                     </div>
@@ -638,6 +627,19 @@ function getMessageManagement() {
         <div class="admin-section">
             <h4>Messaggi Ricevuti</h4>
             <p class="text-muted">I messaggi di contatto appariranno qui.</p>
+        </div>
+    `;
+}
+
+function getCommentModeration() {
+    return `
+        <div class="admin-section">
+            <h4>Moderazione Commenti</h4>
+            <div class="comment-moderation-list">
+                <div id="allComments">
+                    <p class="text-center">Caricamento commenti...</p>
+                </div>
+            </div>
         </div>
     `;
 }
@@ -761,51 +763,32 @@ async function handleAdminLogin(event) {
     }
 }
 
-async function handleAdminRegister(event) {
-    event.preventDefault();
-    const email = document.getElementById('registerEmail').value;
-    const password = document.getElementById('registerPassword').value;
-    const confirmPassword = document.getElementById('confirmPassword').value;
-    
-    if (password !== confirmPassword) {
-        alert('Le password non coincidono');
-        return;
-    }
-    
-    try {
-        await registerAdmin(email, password);
-        alert('Registrazione completata! Ora puoi accedere.');
-        showLoginForm();
-    } catch (error) {
-        alert('Errore durante la registrazione: ' + error.message);
-    }
-}
+// Registration function removed - admin accounts managed in Firebase Console
 
 function checkAdminAuth() {
     const loginSection = document.getElementById('loginSection');
-    const registerSection = document.getElementById('registerSection');
     const adminPanel = document.getElementById('adminPanel');
     
     if (isAdmin && currentUser) {
         loginSection.style.display = 'none';
-        registerSection.style.display = 'none';
         adminPanel.style.display = 'block';
         adminPanel.innerHTML = getAdminPanel();
+        
+        // Load comments for moderation if on that tab
+        setTimeout(() => {
+            const commentsTab = document.getElementById('commenti-tab');
+            if (commentsTab) {
+                loadAllCommentsForModeration();
+            }
+        }, 500);
     } else {
         loginSection.style.display = 'block';
-        registerSection.style.display = 'none';
         adminPanel.style.display = 'none';
     }
 }
 
 function showLoginForm() {
     document.getElementById('loginSection').style.display = 'block';
-    document.getElementById('registerSection').style.display = 'none';
-}
-
-function showRegisterForm() {
-    document.getElementById('loginSection').style.display = 'none';
-    document.getElementById('registerSection').style.display = 'block';
 }
 
 async function handleLogout() {
@@ -827,45 +810,132 @@ async function handleAddArticle(event) {
     
     const title = document.getElementById('articleTitle').value;
     const description = document.getElementById('articleDescription').value;
-    const coverFile = document.getElementById('articleCover').files[0];
-    const pageFiles = document.getElementById('articlePages').files;
+    const pageCount = parseInt(document.getElementById('articlePages').value);
     const publishNow = document.getElementById('publishNow').checked;
     
     try {
-        let coverUrl = '';
-        let pageUrls = [];
-        
-        // Upload cover image if provided
-        if (coverFile) {
-            coverUrl = await uploadCoverImage(coverFile, title);
-        }
-        
-        // Upload page files
-        if (pageFiles.length > 0) {
-            for (let i = 0; i < pageFiles.length; i++) {
-                const file = pageFiles[i];
-                const url = await uploadPdfFile(file, title, `page_${i + 1}_${file.name}`);
-                pageUrls.push(url);
-            }
+        // Create pages array based on folder structure
+        const folderName = title;
+        const pages = [];
+        for (let i = 1; i <= pageCount; i++) {
+            pages.push(`magazine/${folderName}/page${i}.jpg`);
         }
         
         const articleData = {
             title,
+            folderName,
             description,
-            coverImage: coverUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300',
-            pages: pageUrls.length > 0 ? pageUrls : [coverUrl],
+            coverImage: `magazine/${folderName}/page1.jpg`,
+            pages: pages,
             published: publishNow
         };
         
         await saveArticle(articleData);
-        alert('Articolo salvato con successo!');
+        alert('Articolo salvato con successo! Ricorda di caricare i file PDF nella cartella magazine/' + folderName + '/');
         
         // Reload data and refresh admin panel
         await loadAllData();
         showPage('admin');
+        hideAddArticleForm();
         
     } catch (error) {
         alert('Errore durante il salvataggio: ' + error.message);
+    }
+}
+
+async function handlePublishArticle(articleId) {
+    try {
+        await publishArticle(articleId);
+        alert('Articolo pubblicato con successo!');
+        await loadAllData();
+        showPage('admin'); // Refresh admin panel
+    } catch (error) {
+        alert('Errore durante la pubblicazione: ' + error.message);
+    }
+}
+
+async function handleUnpublishArticle(articleId) {
+    if (confirm('Sei sicuro di voler ritirare questo articolo dalla pubblicazione?')) {
+        try {
+            await unpublishArticle(articleId);
+            alert('Articolo ritirato dalla pubblicazione!');
+            await loadAllData();
+            showPage('admin'); // Refresh admin panel
+        } catch (error) {
+            alert('Errore durante il ritiro: ' + error.message);
+        }
+    }
+}
+
+async function handleDeleteArticle(articleId) {
+    if (confirm('Sei sicuro di voler eliminare questo articolo? Questa azione non può essere annullata.')) {
+        try {
+            await deleteArticle(articleId);
+            alert('Articolo eliminato con successo!');
+            await loadAllData();
+            showPage('admin'); // Refresh admin panel
+        } catch (error) {
+            alert('Errore durante l\'eliminazione: ' + error.message);
+        }
+    }
+}
+
+async function loadAllCommentsForModeration() {
+    try {
+        const commentsContainer = document.getElementById('allComments');
+        const commentsRef = ref(database, 'comments');
+        const snapshot = await get(commentsRef);
+        
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            const allComments = Object.keys(data).map(key => ({
+                id: key,
+                ...data[key]
+            })).sort((a, b) => b.createdAt - a.createdAt);
+            
+            if (allComments.length === 0) {
+                commentsContainer.innerHTML = '<p class="text-muted">Nessun commento da moderare.</p>';
+            } else {
+                commentsContainer.innerHTML = allComments.map(comment => `
+                    <div class="comment-moderation-item mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">${comment.author}</h6>
+                                        <small class="text-muted">
+                                            ${formatDate(comment.createdAt)} • 
+                                            ${comment.itemType === 'article' ? 'Articolo' : 'Annuncio'}
+                                        </small>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="handleDeleteComment('${comment.id}')">
+                                        <i class="fas fa-trash"></i> Elimina
+                                    </button>
+                                </div>
+                                <p class="mt-2 mb-0">${comment.content}</p>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        } else {
+            commentsContainer.innerHTML = '<p class="text-muted">Nessun commento da moderare.</p>';
+        }
+    } catch (error) {
+        console.error('Error loading comments:', error);
+        document.getElementById('allComments').innerHTML = '<p class="text-danger">Errore nel caricamento dei commenti.</p>';
+    }
+}
+
+async function handleDeleteComment(commentId) {
+    if (confirm('Sei sicuro di voler eliminare questo commento?')) {
+        try {
+            await deleteComment(commentId);
+            alert('Commento eliminato con successo!');
+            loadAllCommentsForModeration(); // Reload comments
+        } catch (error) {
+            alert('Errore durante l\'eliminazione del commento: ' + error.message);
+        }
     }
 }
 
@@ -1020,17 +1090,20 @@ window.previousPage = previousPage;
 window.nextPage = nextPage;
 window.goToPage = goToPage;
 window.handleAdminLogin = handleAdminLogin;
-window.handleAdminRegister = handleAdminRegister;
 window.showLoginForm = showLoginForm;
-window.showRegisterForm = showRegisterForm;
 window.handleLogout = handleLogout;
 window.checkAdminAuth = checkAdminAuth;
 window.showAddArticleForm = showAddArticleForm;
 window.hideAddArticleForm = hideAddArticleForm;
 window.handleAddArticle = handleAddArticle;
+window.handlePublishArticle = handlePublishArticle;
+window.handleUnpublishArticle = handleUnpublishArticle;
+window.handleDeleteArticle = handleDeleteArticle;
 window.showAddAnnouncementForm = showAddAnnouncementForm;
 window.hideAddAnnouncementForm = hideAddAnnouncementForm;
 window.handleAddAnnouncement = handleAddAnnouncement;
 window.showComments = showComments;
 window.handleAddComment = handleAddComment;
+window.handleDeleteComment = handleDeleteComment;
+window.loadAllCommentsForModeration = loadAllCommentsForModeration;
 window.filterArticles = filterArticles;
