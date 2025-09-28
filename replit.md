@@ -56,19 +56,34 @@ src/                   # Codice sorgente
 - ❌ **Risolto:** Conflitti TypeScript - usato JavaScript puro
 - ✅ **Risultato:** App stabile e performante
 
-## Modifiche Recenti (27/09/2024)
-- ✅ **REDESIGN COMPLETO** - Nuovo design seguendo style-guidelines.json
-- ✅ **INTEGRAZIONE FIREBASE** - Autenticazione Google e database Firestore
-- ✅ **RICH TEXT EDITOR** - Editor avanzato per annunci con formattazione
-- ✅ **SISTEMA COMMENTI** - Commenti per articoli, annunci e giornalini
-- ✅ **PANNELLO ADMIN AVANZATO** - Gestione completa PDF con copertine e programmazione
-- ✅ **HOMEPAGE MIGLIORATA** - Preview ultimo giornalino e decorazioni
-- ✅ **SEZIONE CREDITI** - Pagina dedicata ai crediti del sito
-- ✅ **DESIGN RESPONSIVE** - Utilizzati font Lora, Raleway, Montserrat e palette colori personalizzata
+## Modifiche Recenti (28/09/2024) - AGGIORNAMENTO MAGGIORE
+- ✅ **SISTEMA ARTICOLI PDF COMPLETO** - Gestione articoli organizzati per cartelle con titolo
+- ✅ **PREVIEW APERTA HOMEPAGE** - Anteprima articoli con prima pagina visibile direttamente
+- ✅ **VISUALIZZATORE PDF LIBRO** - Navigazione destra/sinistra come libro con thumbnails
+- ✅ **AUTENTICAZIONE EMAIL/PASSWORD** - Auth Firebase standard invece di Google
+- ✅ **FIREBASE REALTIME DATABASE** - Migrazione da Firestore a Realtime Database
+- ✅ **SEZIONE CONTATTI MIGLIORATA** - Design seguendo immagine di riferimento con gerarchia staff
+- ✅ **PANNELLO ADMIN COMPLETO** - Gestione articoli PDF, annunci e messaggi
+- ✅ **SISTEMA COMMENTI REALTIME** - Commenti per tutti i contenuti con database real-time
 
-## Funzionalità Firebase Integrate
-- **Autenticazione Google** per accesso admin
-- **Database Firestore** per articoli, annunci, PDF e commenti
-- **Storage** per upload file PDF e immagini copertina
-- **Real-time** sync per commenti e contenuti
-- **Sicurezza** con regole di accesso controllate
+## Architettura Firebase Aggiornata
+- **Firebase Auth** con email/password per admin
+- **Realtime Database** per articoli, annunci, commenti e messaggi
+- **Firebase Storage** per upload PDF organizzati per cartelle (nome cartella = titolo articolo)
+- **Upload multipagina** supportato per creare articoli con più pagine PDF
+- **Sistema preview** con navigazione completa tipo ebook
+
+## Funzionalità Principali
+### LATO PUBBLICO:
+- ✅ **Homepage con preview aperta** - Prima pagina articolo visibile direttamente
+- ✅ **Visualizzatore PDF completo** - Navigazione libro con controlli destra/sinistra
+- ✅ **Sezione contatti strutturata** - Fondatore, Admin, Moderatori come da design
+- ✅ **Sistema commenti** per tutti i contenuti
+- ✅ **Responsive design** ottimizzato
+
+### LATO ADMIN:
+- ✅ **Autenticazione email/password** sicura
+- ✅ **Gestione articoli PDF** - Upload con organizzazione per cartelle
+- ✅ **Editor annunci** con priorità e rich text
+- ✅ **Gestione messaggi** ricevuti
+- ✅ **Pubblicazione immediata/programmata** per tutti i contenuti
