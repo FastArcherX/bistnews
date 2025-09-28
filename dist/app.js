@@ -10,17 +10,34 @@ let currentPageIndex = 0;
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing app...');
     showPage('home');
     loadAllData();
 });
 
 async function loadAllData() {
     try {
+        console.log('Loading data from Firebase...');
         articles = await loadArticles() || [];
         announcements = await loadAnnouncements() || [];
         
+        console.log('Loaded articles:', articles.length, 'announcements:', announcements.length);
+        
+        // If no data from Firebase, use demo data
+        if (articles.length === 0 && announcements.length === 0) {
+            console.log('No data from Firebase, loading demo data...');
+            loadDemoData();
+        }
+        
         // Load counts asynchronously after data is loaded
-        await loadAllCounts();
+        setTimeout(() => {
+            loadAllCounts();
+        }, 1000);
+        
+        // Refresh current page to show new data
+        if (window.currentPage) {
+            showPage(window.currentPage);
+        }
     } catch (error) {
         console.error('Error loading data:', error);
         // Fallback to demo data if Firebase is not available
@@ -813,6 +830,16 @@ function checkAdminAuth() {
     const loginSection = document.getElementById('loginSection');
     const adminPanel = document.getElementById('adminPanel');
     
+    // Initialize global variables if not set
+    if (typeof window.isAdmin === 'undefined') {
+        window.isAdmin = false;
+    }
+    if (typeof window.currentUser === 'undefined') {
+        window.currentUser = null;
+    }
+    
+    console.log('checkAdminAuth - isAdmin:', window.isAdmin, 'currentUser:', window.currentUser?.email || 'none');
+    
     if (window.isAdmin && window.currentUser) {
         loginSection.style.display = 'none';
         adminPanel.style.display = 'block';
@@ -927,6 +954,11 @@ async function handleDeleteArticle(articleId) {
 async function loadAllCommentsForModeration() {
     try {
         const commentsContainer = document.getElementById('allComments');
+        if (!commentsContainer) {
+            console.log('allComments container not found');
+            return;
+        }
+        
         const commentsRef = ref(database, 'comments');
         const snapshot = await get(commentsRef);
         
@@ -967,7 +999,10 @@ async function loadAllCommentsForModeration() {
         }
     } catch (error) {
         console.error('Error loading comments:', error);
-        document.getElementById('allComments').innerHTML = '<p class="text-danger">Errore nel caricamento dei commenti.</p>';
+        const container = document.getElementById('allComments');
+        if (container) {
+            container.innerHTML = '<p class="text-danger">Errore nel caricamento dei commenti.</p>';
+        }
     }
 }
 
