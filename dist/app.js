@@ -274,17 +274,17 @@ function getAnnouncementsList() {
                     <i class="fas fa-eye"></i> <span id="views-count-${announcement.id}">0</span>
                 </button>
             </div>
+            <div class="position-absolute bottom-0 end-0 p-2">
+                <button class="btn btn-sm btn-outline-primary" onclick="showComments('announcement', '${announcement.id}')">
+                    <i class="fas fa-comment me-1"></i><span id="comments-count-${announcement.id}">0</span>
+                </button>
+            </div>
             <div class="pe-5">
                 <h6>${announcement.title}</h6>
                 <p>${announcement.content}</p>
-                <div class="d-flex justify-content-between align-items-center">
-                    <small class="text-muted">
-                        <i class="fas fa-calendar"></i> ${formatDate(announcement.createdAt)}
-                    </small>
-                    <button class="btn btn-sm btn-outline-primary" onclick="showComments('announcement', '${announcement.id}')">
-                        <i class="fas fa-comment"></i> <span id="comments-count-${announcement.id}">0</span>
-                    </button>
-                </div>
+                <small class="text-muted">
+                    <i class="fas fa-calendar"></i> ${formatDate(announcement.createdAt)}
+                </small>
             </div>
         </div>
     `).join('');
