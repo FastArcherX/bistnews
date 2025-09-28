@@ -42,10 +42,6 @@ externalPort = 3000
 localPort = 43751
 externalPort = 3001
 
-[[ports]]
-localPort = 45077
-externalPort = 3002
-
 [deployment]
 deploymentTarget = "autoscale"
 run = ["vite", "--host", "0.0.0.0", "--port", "5000", "--force"]

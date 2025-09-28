@@ -268,20 +268,22 @@ function getAnnouncementsList() {
     }
     
     return announcements.map(announcement => `
-        <div class="announcement ${announcement.priority === 'high' ? 'priority-high' : ''}">
-            <h6>${announcement.title}</h6>
-            <p>${announcement.content}</p>
-            <small class="text-muted">
-                <i class="fas fa-calendar"></i> ${formatDate(announcement.createdAt)}
-                <div class="d-flex justify-content-end">
-                    <button class="btn btn-sm btn-outline-primary me-2" onclick="showComments('announcement', '${announcement.id}')">
+        <div class="announcement ${announcement.priority === 'high' ? 'priority-high' : ''} position-relative">
+            <div class="position-absolute top-0 end-0 p-2">
+                <button class="btn btn-sm btn-outline-secondary" onclick="incrementViews('announcement', '${announcement.id}')">
+                    <i class="fas fa-eye"></i> <span id="views-count-${announcement.id}">0</span>
+                </button>
+            </div>
+            <div class="pe-5">
+                <h6>${announcement.title}</h6>
+                <p>${announcement.content}</p>
+                <small class="text-muted">
+                    <i class="fas fa-calendar"></i> ${formatDate(announcement.createdAt)}
+                    <button class="btn btn-sm btn-outline-primary ms-2" onclick="showComments('announcement', '${announcement.id}')">
                         <i class="fas fa-comment"></i> <span id="comments-count-${announcement.id}">0</span>
                     </button>
-                    <button class="btn btn-sm btn-outline-secondary" onclick="incrementViews('announcement', '${announcement.id}')">
-                        <i class="fas fa-eye"></i> <span id="views-count-${announcement.id}">0</span>
-                    </button>
-                </div>
-            </small>
+                </small>
+            </div>
         </div>
     `).join('');
 }
@@ -844,32 +846,15 @@ function checkAdminAuth() {
     const loginSection = document.getElementById('loginSection');
     const adminPanel = document.getElementById('adminPanel');
     
-    // Initialize global variables if not set
-    if (typeof window.isAdmin === 'undefined') {
-        window.isAdmin = false;
-    }
-    if (typeof window.currentUser === 'undefined') {
-        window.currentUser = null;
-    }
+    // Always reset admin status when accessing admin page - force fresh login
+    window.isAdmin = false;
+    window.currentUser = null;
     
-    console.log('checkAdminAuth - isAdmin:', window.isAdmin, 'currentUser:', window.currentUser?.email || 'none');
+    console.log('checkAdminAuth - Forced logout for security, requiring fresh login');
     
-    if (window.isAdmin && window.currentUser) {
-        loginSection.style.display = 'none';
-        adminPanel.style.display = 'block';
-        adminPanel.innerHTML = getAdminPanel();
-        
-        // Load comments for moderation if on that tab
-        setTimeout(() => {
-            const commentsTab = document.getElementById('commenti-tab');
-            if (commentsTab) {
-                loadAllCommentsForModeration();
-            }
-        }, 500);
-    } else {
-        loginSection.style.display = 'block';
-        adminPanel.style.display = 'none';
-    }
+    // Always show login form first
+    loginSection.style.display = 'block';
+    adminPanel.style.display = 'none';
 }
 
 function showLoginForm() {
