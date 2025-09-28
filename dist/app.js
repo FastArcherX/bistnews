@@ -277,12 +277,14 @@ function getAnnouncementsList() {
             <div class="pe-5">
                 <h6>${announcement.title}</h6>
                 <p>${announcement.content}</p>
-                <small class="text-muted">
-                    <i class="fas fa-calendar"></i> ${formatDate(announcement.createdAt)}
-                    <button class="btn btn-sm btn-outline-primary ms-2" onclick="showComments('announcement', '${announcement.id}')">
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                        <i class="fas fa-calendar"></i> ${formatDate(announcement.createdAt)}
+                    </small>
+                    <button class="btn btn-sm btn-outline-primary" onclick="showComments('announcement', '${announcement.id}')">
                         <i class="fas fa-comment"></i> <span id="comments-count-${announcement.id}">0</span>
                     </button>
-                </small>
+                </div>
             </div>
         </div>
     `).join('');
