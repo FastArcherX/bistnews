@@ -37,17 +37,7 @@ window.loginAdmin = async function(email, password) {
     }
 };
 
-window.registerAdmin = async function(email, password) {
-    try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-        console.log('User registered:', user.email);
-        return true;
-    } catch (error) {
-        console.error('Registration error:', error);
-        throw new Error('Errore durante la registrazione: ' + error.message);
-    }
-};
+// Registration removed - admin accounts are managed manually in Firebase Console
 
 // Listen for auth state changes
 onAuthStateChanged(auth, (user) => {
@@ -218,27 +208,69 @@ window.saveMessage = async function(message) {
     }
 };
 
-// Storage functions
-window.uploadPdfFile = async function(file, folderName, filename) {
+// Local file system functions - PDFs stored in magazine folder
+window.getMagazineFolders = async function() {
     try {
-        const pdfStorageRef = storageRef(storage, `articles/${folderName}/${filename}`);
-        const snapshot = await uploadBytes(pdfStorageRef, file);
-        const downloadURL = await getDownloadURL(snapshot.ref);
-        return downloadURL;
+        // This would normally scan the magazine directory
+        // For now, we'll return the structure from database
+        const articlesRef = ref(database, 'articles');
+        const snapshot = await get(articlesRef);
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            return Object.keys(data).map(key => ({
+                id: key,
+                ...data[key]
+            }));
+        }
+        return [];
     } catch (error) {
-        console.error('Error uploading PDF:', error);
+        console.error('Error getting magazine folders:', error);
+        return [];
+    }
+};
+
+window.getArticlePages = function(folderName) {
+    // Return pages based on folder structure in magazine directory
+    const basePath = `magazine/${folderName}`;
+    // This assumes pages are numbered sequentially: page1.pdf, page2.pdf, etc.
+    // or page1.jpg, page2.jpg if converted to images
+    return [`${basePath}/page1.jpg`, `${basePath}/page2.jpg`, `${basePath}/page3.jpg`];
+};
+
+window.publishArticle = async function(articleId) {
+    try {
+        const articleRef = ref(database, `articles/${articleId}`);
+        await set(articleRef, {
+            ...articles.find(a => a.id === articleId),
+            published: true,
+            publishedAt: Date.now()
+        });
+    } catch (error) {
+        console.error('Error publishing article:', error);
         throw error;
     }
 };
 
-window.uploadCoverImage = async function(file, articleTitle) {
+window.unpublishArticle = async function(articleId) {
     try {
-        const coverStorageRef = storageRef(storage, `covers/${articleTitle}_cover.jpg`);
-        const snapshot = await uploadBytes(coverStorageRef, file);
-        const downloadURL = await getDownloadURL(snapshot.ref);
-        return downloadURL;
+        const articleRef = ref(database, `articles/${articleId}`);
+        await set(articleRef, {
+            ...articles.find(a => a.id === articleId),
+            published: false,
+            unpublishedAt: Date.now()
+        });
     } catch (error) {
-        console.error('Error uploading cover:', error);
+        console.error('Error unpublishing article:', error);
+        throw error;
+    }
+};
+
+window.deleteComment = async function(commentId) {
+    try {
+        const commentRef = ref(database, `comments/${commentId}`);
+        await remove(commentRef);
+    } catch (error) {
+        console.error('Error deleting comment:', error);
         throw error;
     }
 };
