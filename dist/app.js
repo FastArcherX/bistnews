@@ -18,10 +18,51 @@ async function loadAllData() {
     try {
         articles = await loadArticles() || [];
         announcements = await loadAnnouncements() || [];
+        
+        // Load counts asynchronously after data is loaded
+        await loadAllCounts();
     } catch (error) {
         console.error('Error loading data:', error);
         // Fallback to demo data if Firebase is not available
         loadDemoData();
+    }
+}
+
+async function loadAllCounts() {
+    // Load comments and views counts for all items
+    for (const article of articles) {
+        try {
+            const commentsCount = await getCommentsCount('article', article.id);
+            const viewsCount = await getViews('article', article.id);
+            
+            // Update UI elements
+            const commentsEl = document.getElementById(`comments-count-${article.id}`);
+            if (commentsEl) commentsEl.textContent = commentsCount;
+            
+            const commentsReaderEl = document.getElementById(`comments-count-reader-${article.id}`);
+            if (commentsReaderEl) commentsReaderEl.textContent = commentsCount;
+            
+            const viewsEl = document.getElementById(`views-count-${article.id}`);
+            if (viewsEl) viewsEl.textContent = viewsCount;
+        } catch (error) {
+            console.error('Error loading counts for article:', article.id, error);
+        }
+    }
+    
+    for (const announcement of announcements) {
+        try {
+            const commentsCount = await getCommentsCount('announcement', announcement.id);
+            const viewsCount = await getViews('announcement', announcement.id);
+            
+            // Update UI elements
+            const commentsEl = document.getElementById(`comments-count-${announcement.id}`);
+            if (commentsEl) commentsEl.textContent = commentsCount;
+            
+            const viewsEl = document.getElementById(`views-count-${announcement.id}`);
+            if (viewsEl) viewsEl.textContent = viewsCount;
+        } catch (error) {
+            console.error('Error loading counts for announcement:', announcement.id, error);
+        }
     }
 }
 
@@ -206,7 +247,10 @@ function getAnnouncementsList() {
             <small class="text-muted">
                 <i class="fas fa-calendar"></i> ${formatDate(announcement.createdAt)}
                 <button class="btn btn-sm btn-outline-primary ms-2" onclick="showComments('announcement', '${announcement.id}')">
-                    <i class="fas fa-comment"></i> ${getCommentsCount('announcement', announcement.id)}
+                    <i class="fas fa-comment"></i> <span id="comments-count-${announcement.id}">0</span>
+                </button>
+                <button class="btn btn-sm btn-outline-secondary ms-1" onclick="incrementViews('announcement', '${announcement.id}')">
+                    <i class="fas fa-eye"></i> <span id="views-count-${announcement.id}">0</span>
                 </button>
             </small>
         </div>
@@ -238,7 +282,10 @@ function getArticoliPage() {
                                         <i class="fas fa-calendar"></i> ${formatDate(article.createdAt)}
                                     </small>
                                     <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); showComments('article', '${article.id}')">
-                                        <i class="fas fa-comment"></i> ${getCommentsCount('article', article.id)}
+                                        <i class="fas fa-comment"></i> <span id="comments-count-${article.id}">0</span>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary ms-1" onclick="event.stopPropagation();">
+                                        <i class="fas fa-eye"></i> <span id="views-count-${article.id}">0</span>
                                     </button>
                                 </div>
                             </div>
@@ -544,9 +591,6 @@ function getArticleManagement() {
                                         <i class="fas fa-paper-plane"></i> Pubblica
                                     </button>
                                 `}
-                                <button class="btn btn-sm btn-outline-primary me-2" onclick="editArticle('${article.id}')">
-                                    <i class="fas fa-edit"></i>
-                                </button>
                                 <button class="btn btn-sm btn-outline-danger" onclick="handleDeleteArticle('${article.id}')">
                                     <i class="fas fa-trash"></i>
                                 </button>
@@ -607,9 +651,6 @@ function getAnnouncementManagement() {
                                 </small>
                             </div>
                             <div class="col-md-4 text-end">
-                                <button class="btn btn-sm btn-outline-primary me-2" onclick="editAnnouncement('${announcement.id}')">
-                                    <i class="fas fa-edit"></i>
-                                </button>
                                 <button class="btn btn-sm btn-outline-danger" onclick="deleteAnnouncement('${announcement.id}')">
                                     <i class="fas fa-trash"></i>
                                 </button>
@@ -645,9 +686,12 @@ function getCommentModeration() {
 }
 
 // PDF Reader with book-like navigation
-function continueReading(articleId) {
+async function continueReading(articleId) {
     const article = articles.find(a => a.id === articleId);
     if (!article) return;
+    
+    // Increment views count
+    await incrementViews('article', articleId);
     
     currentArticleReader = article;
     currentPageIndex = 0;
@@ -665,7 +709,7 @@ function getPdfReader(article) {
                 </button>
                 <h3 class="reader-title">${article.title}</h3>
                 <button class="btn btn-outline-primary" onclick="showComments('article', '${article.id}')">
-                    <i class="fas fa-comment"></i> Commenti (${getCommentsCount('article', article.id)})
+                    <i class="fas fa-comment"></i> Commenti (<span id="comments-count-reader-${article.id}">0</span>)
                 </button>
             </div>
             
@@ -1057,9 +1101,14 @@ async function handleAddComment(event, itemType, itemId) {
     }
 }
 
-function getCommentsCount(itemType, itemId) {
-    // This would normally come from Firebase
-    return Math.floor(Math.random() * 10);
+async function getCommentsCount(itemType, itemId) {
+    try {
+        const comments = await loadComments(itemType, itemId);
+        return comments.length;
+    } catch (error) {
+        console.error('Error getting comments count:', error);
+        return 0;
+    }
 }
 
 // Utility functions
@@ -1107,3 +1156,5 @@ window.handleAddComment = handleAddComment;
 window.handleDeleteComment = handleDeleteComment;
 window.loadAllCommentsForModeration = loadAllCommentsForModeration;
 window.filterArticles = filterArticles;
+window.loadAllCounts = loadAllCounts;
+window.deleteAnnouncement = deleteAnnouncement;

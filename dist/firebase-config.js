@@ -250,6 +250,34 @@ window.saveMessage = async function(message) {
     }
 };
 
+// Views tracking functions
+window.incrementViews = async function(itemType, itemId) {
+    try {
+        const viewsRef = ref(database, `views/${itemType}/${itemId}`);
+        const snapshot = await get(viewsRef);
+        const currentViews = snapshot.exists() ? snapshot.val().count || 0 : 0;
+        await set(viewsRef, {
+            count: currentViews + 1,
+            lastViewed: Date.now()
+        });
+        return currentViews + 1;
+    } catch (error) {
+        console.error('Error incrementing views:', error);
+        return 0;
+    }
+};
+
+window.getViews = async function(itemType, itemId) {
+    try {
+        const viewsRef = ref(database, `views/${itemType}/${itemId}`);
+        const snapshot = await get(viewsRef);
+        return snapshot.exists() ? snapshot.val().count || 0 : 0;
+    } catch (error) {
+        console.error('Error getting views:', error);
+        return 0;
+    }
+};
+
 // Storage functions
 window.uploadPdfFile = async function(file, folderName, filename) {
     try {
