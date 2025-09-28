@@ -131,14 +131,13 @@ function loadDemoData() {
     
     console.log('Demo data loaded, refreshing homepage...');
     // Refresh the current page to show new data
-    if (window.currentPage) {
-        showPage(window.currentPage);
-    }
+    const currentPage = window.currentPage || 'home';
+    showPage(currentPage);
 }
 
 // Page Navigation
 function showPage(page) {
-    currentPage = page;
+    window.currentPage = page;
     const content = document.getElementById('content');
     
     // Update navigation active state
@@ -274,12 +273,14 @@ function getAnnouncementsList() {
             <p>${announcement.content}</p>
             <small class="text-muted">
                 <i class="fas fa-calendar"></i> ${formatDate(announcement.createdAt)}
-                <button class="btn btn-sm btn-outline-primary ms-2" onclick="showComments('announcement', '${announcement.id}')">
-                    <i class="fas fa-comment"></i> <span id="comments-count-${announcement.id}">0</span>
-                </button>
-                <button class="btn btn-sm btn-outline-secondary ms-1" onclick="incrementViews('announcement', '${announcement.id}')">
-                    <i class="fas fa-eye"></i> <span id="views-count-${announcement.id}">0</span>
-                </button>
+                <div class="d-flex justify-content-end">
+                    <button class="btn btn-sm btn-outline-primary me-2" onclick="showComments('announcement', '${announcement.id}')">
+                        <i class="fas fa-comment"></i> <span id="comments-count-${announcement.id}">0</span>
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="incrementViews('announcement', '${announcement.id}')">
+                        <i class="fas fa-eye"></i> <span id="views-count-${announcement.id}">0</span>
+                    </button>
+                </div>
             </small>
         </div>
     `).join('');
@@ -309,12 +310,14 @@ function getArticoliPage() {
                                     <small class="text-muted">
                                         <i class="fas fa-calendar"></i> ${formatDate(article.createdAt)}
                                     </small>
-                                    <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); showComments('article', '${article.id}')">
-                                        <i class="fas fa-comment"></i> <span id="comments-count-${article.id}">0</span>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-secondary ms-1" onclick="event.stopPropagation();">
-                                        <i class="fas fa-eye"></i> <span id="views-count-${article.id}">0</span>
-                                    </button>
+                                    <div class="d-flex justify-content-end">
+                                        <button class="btn btn-sm btn-outline-primary me-2" onclick="event.stopPropagation(); showComments('article', '${article.id}')">
+                                            <i class="fas fa-comment"></i> <span id="comments-count-${article.id}">0</span>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-secondary" onclick="event.stopPropagation();">
+                                            <i class="fas fa-eye"></i> <span id="views-count-${article.id}">0</span>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
