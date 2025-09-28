@@ -805,24 +805,8 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- Set Firebase environment variables -->
-    <script>
-        // Expose environment variables to browser context
-        fetch('/env')
-            .then(response => response.json())
-            .then(env => {
-                window.VITE_FIREBASE_API_KEY = env.VITE_FIREBASE_API_KEY;
-                window.VITE_FIREBASE_PROJECT_ID = env.VITE_FIREBASE_PROJECT_ID;
-                window.VITE_FIREBASE_APP_ID = env.VITE_FIREBASE_APP_ID;
-            })
-            .catch(() => {
-                // Fallback for development
-                console.log('Using development Firebase configuration');
-                window.VITE_FIREBASE_API_KEY = 'demo-key';
-                window.VITE_FIREBASE_PROJECT_ID = 'bistnews-demo';
-                window.VITE_FIREBASE_APP_ID = 'demo-app';
-            });
-    </script>
+    <!-- Load Firebase environment variables -->
+    <script src="firebase-env.js"></script>
     
     <script src="app.js"></script>
     

@@ -17,7 +17,7 @@ if (hasFirebaseConfig) {
         const firebaseConfig = {
             apiKey: window.VITE_FIREBASE_API_KEY,
             authDomain: `${window.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`,
-            databaseURL: `https://${window.VITE_FIREBASE_PROJECT_ID}-default-rtdb.firebaseio.com/`,
+            databaseURL: `https://${window.VITE_FIREBASE_PROJECT_ID}-default-rtdb.europe-west1.firebasedatabase.app/`,
             projectId: window.VITE_FIREBASE_PROJECT_ID,
             storageBucket: `${window.VITE_FIREBASE_PROJECT_ID}.appspot.com`,
             appId: window.VITE_FIREBASE_APP_ID,
