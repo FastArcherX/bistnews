@@ -848,15 +848,32 @@ function checkAdminAuth() {
     const loginSection = document.getElementById('loginSection');
     const adminPanel = document.getElementById('adminPanel');
     
-    // Always reset admin status when accessing admin page - force fresh login
-    window.isAdmin = false;
-    window.currentUser = null;
+    // Initialize global variables if not set
+    if (typeof window.isAdmin === 'undefined') {
+        window.isAdmin = false;
+    }
+    if (typeof window.currentUser === 'undefined') {
+        window.currentUser = null;
+    }
     
-    console.log('checkAdminAuth - Forced logout for security, requiring fresh login');
+    console.log('checkAdminAuth - isAdmin:', window.isAdmin, 'currentUser:', window.currentUser?.email || 'none');
     
-    // Always show login form first
-    loginSection.style.display = 'block';
-    adminPanel.style.display = 'none';
+    if (window.isAdmin && window.currentUser) {
+        loginSection.style.display = 'none';
+        adminPanel.style.display = 'block';
+        adminPanel.innerHTML = getAdminPanel();
+        
+        // Load comments for moderation if on that tab
+        setTimeout(() => {
+            const commentsTab = document.getElementById('commenti-tab');
+            if (commentsTab) {
+                loadAllCommentsForModeration();
+            }
+        }, 500);
+    } else {
+        loginSection.style.display = 'block';
+        adminPanel.style.display = 'none';
+    }
 }
 
 function showLoginForm() {
