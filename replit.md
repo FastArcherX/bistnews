@@ -56,22 +56,38 @@ src/                   # Codice sorgente
 - ❌ **Risolto:** Conflitti TypeScript - usato JavaScript puro
 - ✅ **Risultato:** App stabile e performante
 
-## Modifiche Recenti (28/09/2024) - AGGIORNAMENTO MAGGIORE
-- ✅ **SISTEMA ARTICOLI PDF COMPLETO** - Gestione articoli organizzati per cartelle con titolo
-- ✅ **PREVIEW APERTA HOMEPAGE** - Anteprima articoli con prima pagina visibile direttamente
-- ✅ **VISUALIZZATORE PDF LIBRO** - Navigazione destra/sinistra come libro con thumbnails
-- ✅ **AUTENTICAZIONE EMAIL/PASSWORD** - Auth Firebase standard invece di Google
-- ✅ **FIREBASE REALTIME DATABASE** - Migrazione da Firestore a Realtime Database
-- ✅ **SEZIONE CONTATTI MIGLIORATA** - Design seguendo immagine di riferimento con gerarchia staff
-- ✅ **PANNELLO ADMIN COMPLETO** - Gestione articoli PDF, annunci e messaggi
-- ✅ **SISTEMA COMMENTI REALTIME** - Commenti per tutti i contenuti con database real-time
+## Modifiche Recenti (28/09/2024) - VERSIONE FINALE
+- ✅ **SISTEMA ARTICOLI PDF LOCALE** - Gestione articoli da cartella `magazine/` locale
+- ✅ **PREVIEW INGRANDITA HOMEPAGE** - Prima pagina 600px per leggibilità ottimale
+- ✅ **VISUALIZZATORE PDF LIBRO** - Navigazione destra/sinistra con thumbnails
+- ✅ **SOLO LOGIN ADMIN** - Rimossa registrazione, accesso con credenziali Firebase
+- ✅ **FIREBASE REALTIME DATABASE** - Database real-time per gestione contenuti
+- ✅ **SEZIONE CONTATTI FINALE** - Design completo seguendo specifiche
+- ✅ **ADMIN PUBBLICAZIONE/RITIRO** - Controllo completo visibilità articoli
+- ✅ **MODERAZIONE COMMENTI** - Pannello admin per gestire tutti i commenti
+- ✅ **STRUTTURA CARTELLE MAGAZINE** - Sistema file locale senza costi Storage
 
-## Architettura Firebase Aggiornata
-- **Firebase Auth** con email/password per admin
-- **Realtime Database** per articoli, annunci, commenti e messaggi
-- **Firebase Storage** per upload PDF organizzati per cartelle (nome cartella = titolo articolo)
-- **Upload multipagina** supportato per creare articoli con più pagine PDF
-- **Sistema preview** con navigazione completa tipo ebook
+## Architettura Finale
+- **Firebase Auth** - Solo accesso admin con email/password (no registrazione)
+- **Firebase Realtime Database** - Articoli, annunci, commenti e messaggi
+- **Sistema File Locale** - PDF nella cartella `magazine/[nome-articolo]/page1.jpg, page2.jpg...`
+- **NO Firebase Storage** - Evita costi, gestione manuale file
+- **Controllo Admin Completo** - Pubblicazione/ritiro + moderazione commenti
+
+## Struttura Cartelle Magazine
+```
+dist/magazine/
+├── Benvenuti al nuovo anno scolastico/
+│   ├── page1.jpg
+│   ├── page2.jpg
+│   └── page3.jpg
+├── Progetto sostenibilità ambientale/
+│   ├── page1.jpg
+│   └── page2.jpg
+└── [Altri articoli...]/
+    ├── page1.jpg
+    └── [altre pagine...]
+```
 
 ## Funzionalità Principali
 ### LATO PUBBLICO:
