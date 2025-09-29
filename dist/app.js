@@ -1,4 +1,4 @@
-// The Student Voice Application - Complete Campus News Platform
+// BISTnews Application - Redesigned with Firebase Realtime Database
 let currentPage = 'home';
 let articles = [];
 let announcements = [];
@@ -89,10 +89,9 @@ function loadDemoData() {
     articles = [
         {
             id: 'demo1',
-            title: "Welcome to the New Academic Year",
+            title: "Benvenuti al nuovo anno scolastico",
             folderName: "Benvenuti al nuovo anno scolastico",
-            description: "A new exciting academic year begins at our campus. Discover all the news and upcoming events.",
-            category: "news",
+            description: "Inizia un nuovo entusiasmante anno scolastico al BIST. Scopri tutte le novità e gli eventi in programma.",
             coverImage: "magazine/Benvenuti al nuovo anno scolastico/page1.jpg",
             pages: [
                 "magazine/Benvenuti al nuovo anno scolastico/page1.jpg",
@@ -104,10 +103,9 @@ function loadDemoData() {
         },
         {
             id: 'demo2',
-            title: "Environmental Sustainability Project",
+            title: "Progetto sostenibilità ambientale",
             folderName: "Progetto sostenibilità ambientale",
-            description: "Our school participates in environmental sustainability projects with new eco-friendly initiatives.",
-            category: "student-life",
+            description: "La nostra scuola partecipa al progetto di sostenibilità ambientale con nuove iniziative eco-friendly.",
             coverImage: "magazine/Progetto sostenibilità ambientale/page1.jpg",
             pages: [
                 "magazine/Progetto sostenibilità ambientale/page1.jpg",
@@ -123,8 +121,8 @@ function loadDemoData() {
         announcements = [
             {
                 id: 'demo_ann1',
-                title: "New Dining Hall Hours",
-                content: "Starting October 1st, the campus dining hall will adopt new hours: Lunch from 12:30 PM to 2:00 PM, Snacks from 3:00 PM to 3:30 PM",
+                title: "Nuovi orari mensa",
+                content: "A partire dal 1° ottobre, la mensa scolastica adotterà i nuovi orari: Pranzo dalle 12:30 alle 14:00, Merenda dalle 15:00 alle 15:30",
                 priority: "high",
                 createdAt: Date.now() - 43200000
             }
@@ -138,41 +136,25 @@ function loadDemoData() {
 }
 
 // Page Navigation
-function showPage(page, category = null) {
+function showPage(page) {
     window.currentPage = page;
-    window.currentCategory = category;
     const content = document.getElementById('content');
     
     // Update navigation active state
-    document.querySelectorAll('.nav-link, .dropdown-item').forEach(link => {
+    document.querySelectorAll('.nav-link').forEach(link => {
         link.classList.remove('active');
     });
-    document.querySelector(`[onclick*="showPage('${page}')"]`)?.classList.add('active');
+    document.querySelector(`[onclick="showPage('${page}')"]`)?.classList.add('active');
     
     switch(page) {
         case 'home':
             content.innerHTML = getHomePage();
             break;
-        case 'articles':
-        case 'articoli': // Legacy support
-            content.innerHTML = getArticlesPage(category);
+        case 'articoli':
+            content.innerHTML = getArticoliPage();
             break;
-        case 'student-life':
-            content.innerHTML = getStudentLifePage();
-            break;
-        case 'events':
-            content.innerHTML = getEventsPage();
-            break;
-        case 'resources':
-            content.innerHTML = getResourcesPage();
-            break;
-        case 'magazines':
-        case 'giornalini': // Legacy support
-            content.innerHTML = getMagazinesPage();
-            break;
-        case 'contact':
-        case 'contatti': // Legacy support
-            content.innerHTML = getContactPage();
+        case 'contatti':
+            content.innerHTML = getContattiPage();
             break;
         case 'admin':
             content.innerHTML = getAdminPage();
@@ -192,17 +174,14 @@ function getHomePage() {
             <div class="container">
                 <div class="row">
                     <div class="col-12 text-center">
-                        <h1 class="display-1 hero-title">The Student Voice</h1>
-                        <p class="lead hero-subtitle">Your trusted source for campus news, student life, and everything that matters</p>
+                        <h1 class="display-1 hero-title">BISTnews</h1>
+                        <p class="lead hero-subtitle">Il giornale digitale della nostra scuola</p>
                         <div class="hero-buttons">
-                            <button class="btn btn-primary btn-lg me-3" onclick="showPage('magazines')">
-                                <i class="fas fa-newspaper"></i> Latest Issues
+                            <button class="btn btn-primary btn-lg me-3" onclick="showPage('articoli')">
+                                <i class="fas fa-newspaper"></i> Ultimi Giornalini
                             </button>
-                            <button class="btn btn-outline-primary btn-lg" onclick="showPage('articles')">
-                                <i class="fas fa-edit"></i> Read Articles
-                            </button>
-                            <button class="btn btn-outline-primary btn-lg ms-3" onclick="showPage('contact')">
-                                <i class="fas fa-paper-plane"></i> Submit Story
+                            <button class="btn btn-outline-primary btn-lg" onclick="showPage('articoli')">
+                                <i class="fas fa-edit"></i> Leggi Articoli
                             </button>
                         </div>
                     </div>
@@ -215,7 +194,7 @@ function getHomePage() {
             
             <div class="row mt-5">
                 <div class="col-md-8">
-                    <h3 class="section-title">Latest Articles</h3>
+                    <h3 class="section-title">Ultimi Articoli</h3>
                     ${getArticlesGrid()}
                 </div>
                 <div class="col-md-4">
@@ -257,13 +236,12 @@ function getArticlePreviewSection(article) {
     `;
 }
 
-function getArticlesGrid(category = null) {
-    const filteredArticles = category ? articles.filter(a => a.category === category && a.published) : articles.filter(a => a.published);
-    if (!filteredArticles.length) {
-        return '<p class="text-muted">No articles available at the moment.</p>';
+function getArticlesGrid() {
+    if (!articles.length) {
+        return '<p class="text-muted">Nessun articolo disponibile al momento.</p>';
     }
     
-    return filteredArticles.map(article => `
+    return articles.filter(a => a.published).map(article => `
         <div class="article-card mb-3" onclick="continueReading('${article.id}')">
             <div class="row">
                 <div class="col-md-3">
@@ -313,31 +291,19 @@ function getAnnouncementsList() {
 }
 
 // Articles Page
-function getArticlesPage(category = null) {
-    const filteredArticles = category ? articles.filter(a => a.category === category) : articles;
-    const categoryTitles = {
-        'news': 'Campus News',
-        'opinion': 'Opinion Pieces', 
-        'sports': 'Sports Coverage',
-        'arts': 'Arts & Culture',
-        'student-life': 'Student Life Stories'
-    };
-    
+function getArticoliPage() {
     return `
         <div class="container mt-4">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="page-title">${category ? categoryTitles[category] : 'All Articles'}</h2>
+                <h2 class="page-title">Tutti gli Articoli</h2>
                 <div class="article-filters">
-                    <button class="btn btn-outline-primary ${!category ? 'active' : ''}" onclick="showPage('articles')">All</button>
-                    <button class="btn btn-outline-primary ${category === 'news' ? 'active' : ''}" onclick="showPage('articles', 'news')">News</button>
-                    <button class="btn btn-outline-primary ${category === 'opinion' ? 'active' : ''}" onclick="showPage('articles', 'opinion')">Opinion</button>
-                    <button class="btn btn-outline-primary ${category === 'sports' ? 'active' : ''}" onclick="showPage('articles', 'sports')">Sports</button>
-                    <button class="btn btn-outline-primary ${category === 'arts' ? 'active' : ''}" onclick="showPage('articles', 'arts')">Arts</button>
+                    <button class="btn btn-outline-primary active" onclick="filterArticles('all')">Tutti</button>
+                    <button class="btn btn-outline-primary" onclick="filterArticles('recent')">Recenti</button>
                 </div>
             </div>
             
             <div class="row">
-                ${filteredArticles.filter(a => a.published).map(article => `
+                ${articles.filter(a => a.published).map(article => `
                     <div class="col-md-6 col-lg-4 mb-4">
                         <div class="article-card-full" onclick="continueReading('${article.id}')">
                             <img src="${article.coverImage}" class="article-cover" alt="${article.title}">
@@ -501,370 +467,6 @@ function getContattiPage() {
     `;
 }
 
-// New Student Life Page
-function getStudentLifePage() {
-    return `
-        <div class="container mt-4">
-            <h2 class="page-title text-center mb-5">Student Life</h2>
-            
-            <div class="row">
-                <div class="col-md-8">
-                    <h3 class="section-title">Student Life Stories</h3>
-                    ${getArticlesGrid('student-life')}
-                    
-                    <div class="student-clubs mt-5">
-                        <h3 class="section-title">Student Organizations</h3>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <div class="club-card">
-                                    <h5><i class="fas fa-music"></i> Music Club</h5>
-                                    <p>Join our vibrant music community! We organize concerts, jam sessions, and music workshops.</p>
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="club-card">
-                                    <h5><i class="fas fa-camera"></i> Photography Club</h5>
-                                    <p>Capture campus life through your lens. Photography workshops and exhibitions throughout the year.</p>
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="club-card">
-                                    <h5><i class="fas fa-theater-masks"></i> Drama Society</h5>
-                                    <p>Express yourself through acting, directing, and stage production. Annual productions and workshops.</p>
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="club-card">
-                                    <h5><i class="fas fa-recycle"></i> Environmental Club</h5>
-                                    <p>Making our campus more sustainable. Join our eco-initiatives and awareness campaigns.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-4">
-                    <div class="sidebar">
-                        <h4>Quick Links</h4>
-                        <div class="quick-links">
-                            <a href="#" class="quick-link-item">
-                                <i class="fas fa-calendar"></i> Campus Events
-                            </a>
-                            <a href="#" class="quick-link-item">
-                                <i class="fas fa-utensils"></i> Dining Hall
-                            </a>
-                            <a href="#" class="quick-link-item">
-                                <i class="fas fa-dumbbell"></i> Recreation Center
-                            </a>
-                            <a href="#" class="quick-link-item">
-                                <i class="fas fa-book"></i> Library Resources
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
-// Events Page
-function getEventsPage() {
-    return `
-        <div class="container mt-4">
-            <h2 class="page-title text-center mb-5">Campus Events</h2>
-            
-            <div class="row">
-                <div class="col-md-8">
-                    <div class="events-calendar">
-                        <h3 class="section-title">Upcoming Events</h3>
-                        <div class="event-list">
-                            <div class="event-item">
-                                <div class="event-date">
-                                    <div class="month">OCT</div>
-                                    <div class="day">15</div>
-                                </div>
-                                <div class="event-details">
-                                    <h5>Fall Festival</h5>
-                                    <p class="event-time"><i class="fas fa-clock"></i> 2:00 PM - 6:00 PM</p>
-                                    <p class="event-location"><i class="fas fa-map-marker-alt"></i> Main Quad</p>
-                                    <p>Join us for music, food, and fun at our annual Fall Festival!</p>
-                                </div>
-                            </div>
-                            
-                            <div class="event-item">
-                                <div class="event-date">
-                                    <div class="month">OCT</div>
-                                    <div class="day">22</div>
-                                </div>
-                                <div class="event-details">
-                                    <h5>Career Fair</h5>
-                                    <p class="event-time"><i class="fas fa-clock"></i> 10:00 AM - 4:00 PM</p>
-                                    <p class="event-location"><i class="fas fa-map-marker-alt"></i> Student Center</p>
-                                    <p>Meet with employers and explore career opportunities across various industries.</p>
-                                </div>
-                            </div>
-                            
-                            <div class="event-item">
-                                <div class="event-date">
-                                    <div class="month">NOV</div>
-                                    <div class="day">5</div>
-                                </div>
-                                <div class="event-details">
-                                    <h5>Theatre Production: "The Tempest"</h5>
-                                    <p class="event-time"><i class="fas fa-clock"></i> 7:30 PM</p>
-                                    <p class="event-location"><i class="fas fa-map-marker-alt"></i> Performing Arts Center</p>
-                                    <p>Drama Society presents Shakespeare's "The Tempest". Tickets available at the door.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-4">
-                    <div class="sidebar">
-                        <h4>Event Categories</h4>
-                        <div class="category-filters">
-                            <button class="btn btn-outline-primary w-100 mb-2">Academic</button>
-                            <button class="btn btn-outline-primary w-100 mb-2">Social</button>
-                            <button class="btn btn-outline-primary w-100 mb-2">Sports</button>
-                            <button class="btn btn-outline-primary w-100 mb-2">Cultural</button>
-                        </div>
-                        
-                        <div class="mt-4">
-                            <h4>Submit Your Event</h4>
-                            <p class="small text-muted">Have an event to promote? Submit details to our editorial team.</p>
-                            <button class="btn btn-primary w-100" onclick="showPage('contact')">Submit Event</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
-// Resources Page
-function getResourcesPage() {
-    return `
-        <div class="container mt-4">
-            <h2 class="page-title text-center mb-5">Student Resources</h2>
-            
-            <div class="row">
-                <div class="col-md-4 mb-4">
-                    <div class="resource-category">
-                        <h4><i class="fas fa-graduation-cap"></i> Academic Support</h4>
-                        <div class="resource-list">
-                            <a href="#" class="resource-item">
-                                <i class="fas fa-book"></i> Study Guides & Tutorials
-                            </a>
-                            <a href="#" class="resource-item">
-                                <i class="fas fa-users"></i> Tutoring Services
-                            </a>
-                            <a href="#" class="resource-item">
-                                <i class="fas fa-calendar-check"></i> Academic Calendar
-                            </a>
-                            <a href="#" class="resource-item">
-                                <i class="fas fa-file-alt"></i> Writing Center
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-4 mb-4">
-                    <div class="resource-category">
-                        <h4><i class="fas fa-heart"></i> Student Wellness</h4>
-                        <div class="resource-list">
-                            <a href="#" class="resource-item">
-                                <i class="fas fa-hospital"></i> Health Services
-                            </a>
-                            <a href="#" class="resource-item">
-                                <i class="fas fa-comments"></i> Counseling Center
-                            </a>
-                            <a href="#" class="resource-item">
-                                <i class="fas fa-dumbbell"></i> Fitness & Recreation
-                            </a>
-                            <a href="#" class="resource-item">
-                                <i class="fas fa-leaf"></i> Mental Health Resources
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-4 mb-4">
-                    <div class="resource-category">
-                        <h4><i class="fas fa-briefcase"></i> Career Development</h4>
-                        <div class="resource-list">
-                            <a href="#" class="resource-item">
-                                <i class="fas fa-file-pdf"></i> Resume Builder
-                            </a>
-                            <a href="#" class="resource-item">
-                                <i class="fas fa-handshake"></i> Internship Portal
-                            </a>
-                            <a href="#" class="resource-item">
-                                <i class="fas fa-user-tie"></i> Career Counseling
-                            </a>
-                            <a href="#" class="resource-item">
-                                <i class="fas fa-network-wired"></i> Alumni Network
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="row mt-5">
-                <div class="col-md-6 mb-4">
-                    <div class="featured-resource">
-                        <h4>Study Abroad Programs</h4>
-                        <p>Explore the world while earning credits. Learn about our international partnership programs and scholarship opportunities.</p>
-                        <button class="btn btn-primary">Learn More</button>
-                    </div>
-                </div>
-                
-                <div class="col-md-6 mb-4">
-                    <div class="featured-resource">
-                        <h4>Financial Aid & Scholarships</h4>
-                        <p>Get help navigating financial aid options, scholarship applications, and budgeting as a student.</p>
-                        <button class="btn btn-primary">Get Help</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
-// Magazines/Digital Issues Page
-function getMagazinesPage() {
-    return `
-        <div class="container mt-4">
-            <h2 class="page-title text-center mb-5">Digital Issues</h2>
-            <p class="text-center text-muted mb-5">Browse our complete collection of digital magazine issues</p>
-            
-            <div class="row">
-                ${articles.map(article => `
-                    <div class="col-md-6 col-lg-4 mb-4">
-                        <div class="magazine-cover" onclick="continueReading('${article.id}')">
-                            <img src="${article.coverImage}" alt="${article.title}" class="w-100">
-                            <div class="magazine-overlay">
-                                <h5 class="magazine-title">${article.title}</h5>
-                                <p class="magazine-date">${formatDate(article.createdAt)}</p>
-                                <div class="magazine-stats">
-                                    <span class="me-3">
-                                        <i class="fas fa-eye"></i> <span id="views-count-${article.id}">0</span>
-                                    </span>
-                                    <span>
-                                        <i class="fas fa-comment"></i> <span id="comments-count-${article.id}">0</span>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        </div>
-    `;
-}
-
-// Enhanced Contact/Submit Page
-function getContactPage() {
-    return `
-        <div class="container mt-4">
-            <h2 class="page-title text-center mb-5">Contact & Submissions</h2>
-            
-            <div class="row">
-                <div class="col-md-8">
-                    <div class="submission-section">
-                        <h3 class="section-title">Submit Your Story</h3>
-                        <p class="mb-4">Have news, opinions, or stories to share? We want to hear from you!</p>
-                        
-                        <form class="submission-form">
-                            <div class="mb-3">
-                                <label for="submissionType" class="form-label">Submission Type</label>
-                                <select class="form-select" id="submissionType" required>
-                                    <option value="">Choose submission type...</option>
-                                    <option value="news">Campus News</option>
-                                    <option value="opinion">Opinion Piece</option>
-                                    <option value="sports">Sports Coverage</option>
-                                    <option value="arts">Arts & Culture</option>
-                                    <option value="event">Event Announcement</option>
-                                    <option value="photo">Photo Submission</option>
-                                </select>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="authorName" class="form-label">Your Name</label>
-                                <input type="text" class="form-control" id="authorName" required>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="authorEmail" class="form-label">Email Address</label>
-                                <input type="email" class="form-control" id="authorEmail" required>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="submissionTitle" class="form-label">Title</label>
-                                <input type="text" class="form-control" id="submissionTitle" required>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="submissionContent" class="form-label">Content</label>
-                                <textarea class="form-control" id="submissionContent" rows="6" required></textarea>
-                            </div>
-                            
-                            <button type="submit" class="btn btn-primary">Submit for Review</button>
-                        </form>
-                    </div>
-                </div>
-                
-                <div class="col-md-4">
-                    <div class="contact-info-section">
-                        <h4>Editorial Team</h4>
-                        
-                        <div class="contact-card mb-3">
-                            <h6><i class="fas fa-user-edit"></i> Editor-in-Chief</h6>
-                            <p class="contact-role">Managing daily operations and content direction</p>
-                        </div>
-                        
-                        <div class="contact-card mb-3">
-                            <h6><i class="fas fa-camera"></i> Photo Editor</h6>
-                            <p class="contact-role">Coordinating visual content and photography</p>
-                        </div>
-                        
-                        <div class="contact-card mb-3">
-                            <h6><i class="fas fa-pen-fancy"></i> Opinion Editor</h6>
-                            <p class="contact-role">Overseeing editorial and opinion pieces</p>
-                        </div>
-                        
-                        <div class="mt-4">
-                            <h4>Contact Information</h4>
-                            <div class="contact-item">
-                                <i class="fas fa-envelope"></i>
-                                <span>editor@studentvoice.edu</span>
-                            </div>
-                            <div class="contact-item">
-                                <i class="fas fa-phone"></i>
-                                <span>+1 (555) 123-4567</span>
-                            </div>
-                            <div class="contact-item">
-                                <i class="fas fa-map-marker-alt"></i>
-                                <span>Student Center, Room 201</span>
-                            </div>
-                        </div>
-                        
-                        <div class="mt-4">
-                            <h4>Follow Us</h4>
-                            <div class="social-links">
-                                <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
-                                <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
-                                <a href="#" class="social-link"><i class="fab fa-facebook"></i></a>
-                                <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
 // Admin Page with email/password authentication
 function getAdminPage() {
     return `
@@ -952,8 +554,8 @@ function getArticleManagement() {
             <h4>Gestione Articoli PDF</h4>
             <div class="alert alert-info">
                 <i class="fas fa-info-circle"></i> 
-                <strong>Note:</strong> PDF files must be manually uploaded to the <code>magazine/[article-name]/</code> folder on the site.
-                Here you can only manage article publication and visibility.
+                <strong>Nota:</strong> I file PDF devono essere caricati manualmente nella cartella <code>magazine/[nome-articolo]/</code> del sito.
+                Qui puoi solo gestire la pubblicazione e la visibilità degli articoli.
             </div>
             
             <button class="btn btn-primary mb-3" onclick="showAddArticleForm()">
@@ -967,9 +569,9 @@ function getArticleManagement() {
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label">Article Title</label>
+                                    <label class="form-label">Titolo Articolo</label>
                                     <input type="text" class="form-control" id="articleTitle" required>
-                                    <small class="text-muted">Must match the folder name in magazine/</small>
+                                    <small class="text-muted">Deve corrispondere al nome della cartella in magazine/</small>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Descrizione</label>
@@ -1318,7 +920,7 @@ async function handleAddArticle(event) {
         };
         
         await saveArticle(articleData);
-        alert('Article saved successfully! Remember to upload PDF files to the magazine/' + folderName + '/ folder');
+        alert('Articolo salvato con successo! Ricorda di caricare i file PDF nella cartella magazine/' + folderName + '/');
         
         // Reload data and refresh admin panel
         await loadAllData();
@@ -1578,7 +1180,7 @@ async function getCommentsCount(itemType, itemId) {
 // Utility functions
 function formatDate(timestamp) {
     const date = new Date(timestamp);
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleDateString('it-IT', {
         year: 'numeric',
         month: 'long',
         day: 'numeric'
