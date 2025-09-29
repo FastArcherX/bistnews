@@ -1,7 +1,7 @@
-# BISTnews - Giornale Scolastico
+# The Student Voice - Complete Campus News Platform
 
-## Panoramica del Progetto
-BISTnews è un'applicazione web per un giornale scolastico ora implementata come applicazione statica HTML/JavaScript. L'applicazione include funzionalità complete per la gestione degli articoli, upload PDF giornalini, annunci e area amministrativa.
+## Project Overview
+The Student Voice is a comprehensive web application for a student newspaper/publication platform. Fully transformed from BISTnews into an English-language campus news platform with expanded functionality including news categorization, student life content, events calendar, resources section, and enhanced submission system.
 
 ## Stato Attuale
 - ✅ **APP FUNZIONANTE** - Server HTTP attivo e stabile su porta 5000

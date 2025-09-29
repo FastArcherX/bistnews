@@ -754,12 +754,290 @@
             cache-control: no-cache;
         }
         
+        /* Student Voice New Page Styles */
+        .club-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+        
+        .club-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(119, 21, 16, 0.1);
+        }
+        
+        .club-card h5 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+        
+        .club-card i {
+            margin-right: 10px;
+        }
+        
+        .resource-category {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            height: 100%;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .resource-category h4 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 10px;
+        }
+        
+        .resource-item {
+            display: block;
+            padding: 12px 15px;
+            color: var(--quaternary-color);
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+        
+        .resource-item:hover {
+            background: var(--secondary-color);
+            border-left-color: var(--primary-color);
+            color: var(--quaternary-color);
+            text-decoration: none;
+            transform: translateX(10px);
+        }
+        
+        .resource-item i {
+            width: 20px;
+            margin-right: 10px;
+        }
+        
+        .featured-resource {
+            background: linear-gradient(135deg, var(--primary-color), var(--tertiary-color));
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            height: 100%;
+        }
+        
+        .featured-resource h4 {
+            margin-bottom: 15px;
+        }
+        
+        .featured-resource .btn {
+            background: white;
+            color: var(--primary-color);
+            border: none;
+        }
+        
+        .featured-resource .btn:hover {
+            background: var(--secondary-color);
+        }
+        
+        .event-item {
+            display: flex;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+        
+        .event-item:hover {
+            box-shadow: 0 8px 25px rgba(119, 21, 16, 0.1);
+            transform: translateY(-3px);
+        }
+        
+        .event-date {
+            background: var(--primary-color);
+            color: white;
+            text-align: center;
+            border-radius: 10px;
+            padding: 15px;
+            margin-right: 20px;
+            min-width: 80px;
+        }
+        
+        .event-date .month {
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .event-date .day {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-top: 5px;
+        }
+        
+        .event-details h5 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
+        .event-time, .event-location {
+            color: var(--quinary-color);
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+        
+        .magazine-cover {
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .magazine-cover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .magazine-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            color: white;
+            padding: 20px;
+            transform: translateY(100%);
+            transition: all 0.3s ease;
+        }
+        
+        .magazine-cover:hover .magazine-overlay {
+            transform: translateY(0);
+        }
+        
+        .magazine-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .magazine-date {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .magazine-stats {
+            font-size: 0.8rem;
+            margin-top: 10px;
+        }
+        
+        .quick-link-item {
+            display: block;
+            padding: 12px 15px;
+            color: var(--quaternary-color);
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+            background: white;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .quick-link-item:hover {
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            transform: translateX(5px);
+        }
+        
+        .quick-link-item i {
+            margin-right: 10px;
+            width: 20px;
+        }
+        
+        .contact-info-section .contact-card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .contact-info-section .contact-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .contact-info-section .contact-item:last-child {
+            border-bottom: none;
+        }
+        
+        .contact-info-section .contact-item i {
+            margin-right: 10px;
+            width: 20px;
+            color: var(--primary-color);
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .social-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .social-link:hover {
+            background: var(--tertiary-color);
+            transform: translateY(-2px);
+            color: white;
+        }
+        
+        .submission-form {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+        }
+        
+        .sidebar {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        
+        .sidebar h4 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 10px;
+        }
+        
         @media (max-width: 768px) {
             .hero-title {
                 font-size: 3rem;
             }
             .navbar-brand {
                 font-size: 1.5rem;
+            }
+            .event-item {
+                flex-direction: column;
+                text-align: center;
+            }
+            .event-date {
+                margin-right: 0;
+                margin-bottom: 15px;
+                width: 100%;
             }
         }
     </style>

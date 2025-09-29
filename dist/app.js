@@ -257,12 +257,13 @@ function getArticlePreviewSection(article) {
     `;
 }
 
-function getArticlesGrid() {
-    if (!articles.length) {
+function getArticlesGrid(category = null) {
+    const filteredArticles = category ? articles.filter(a => a.category === category && a.published) : articles.filter(a => a.published);
+    if (!filteredArticles.length) {
         return '<p class="text-muted">No articles available at the moment.</p>';
     }
     
-    return articles.filter(a => a.published).map(article => `
+    return filteredArticles.map(article => `
         <div class="article-card mb-3" onclick="continueReading('${article.id}')">
             <div class="row">
                 <div class="col-md-3">
@@ -1577,7 +1578,7 @@ async function getCommentsCount(itemType, itemId) {
 // Utility functions
 function formatDate(timestamp) {
     const date = new Date(timestamp);
-    return date.toLocaleDateString('it-IT', {
+    return date.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'long',
         day: 'numeric'
