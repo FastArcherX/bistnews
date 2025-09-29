@@ -65,7 +65,17 @@ replit.md                         # Documentazione progetto
 - ❌ **Risolto:** Conflitti TypeScript - usato JavaScript puro
 - ✅ **Risultato:** App stabile e performante
 
-## Latest Changes (29/09/2024) - COMPLETE SYSTEM TRANSFORMATION
+## Latest Changes (29/09/2025) - BUG FIXES & UI IMPROVEMENTS
+- ✅ **DEMO DATA REMOVED** - All demo articles and weekly news removed, replaced with "No content yet" messages
+- ✅ **TAG INPUT CONVERTED TO DROPDOWN** - Changed from text input to select dropdown with predefined tags (school-news, features, opinion, sports, creative, humor, tech, lifestyle, music, reviews)
+- ✅ **READ FULL ARTICLE FIXED** - "Read Full Article" button now opens article modal instead of legacy PDF reader
+- ✅ **IMAGE DISPLAY CLEANED** - Removed file names from article images for cleaner presentation
+- ✅ **MANAGE ARTICLES SECTION** - Updated to handle text-based articles with photos instead of legacy PDF system
+- ✅ **SEARCH BAR ADDED** - Real-time article search by title and content next to tag filters
+- ✅ **LAYOUT IMPROVEMENTS** - Fixed spacing between tag filters and Latest Articles section with responsive design
+- ✅ **COMMENT SYSTEM FIXED** - Fully converted loadAllCommentsForModeration and saveComment from Firebase to localStorage, all errors resolved
+
+## Previous Changes (29/09/2024) - COMPLETE SYSTEM TRANSFORMATION
 - ✅ **FIREBASE TO LOCALSTORAGE MIGRATION** - Complete replacement of Firebase with localStorage system for cost savings
 - ✅ **DIRECT ARTICLE SUBMISSION** - New "Submit New Article" interface in Admin Panel with file upload, tags, and categories
 - ✅ **REAL TRENDING FUNCTIONALITY** - Dynamic trending based on actual view counts with animated fire emoji icon
