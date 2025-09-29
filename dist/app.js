@@ -136,7 +136,7 @@ function loadDemoData() {
 }
 
 // Page Navigation
-function showPage(page) {
+async function showPage(page) {
     window.currentPage = page;
     const content = document.getElementById('content');
     
@@ -148,7 +148,7 @@ function showPage(page) {
     
     switch(page) {
         case 'home':
-            content.innerHTML = getHomePage();
+            content.innerHTML = await getHomePage();
             break;
         case 'articoli':
             content.innerHTML = getArticoliPage();
@@ -161,26 +161,50 @@ function showPage(page) {
             checkAdminAuth();
             break;
         default:
-            content.innerHTML = getHomePage();
+            content.innerHTML = await getHomePage();
     }
 }
 
+// Get the most viewed article for trending section
+async function getMostViewedArticle() {
+    if (articles.length === 0) return null;
+    
+    let mostViewedArticle = articles.find(a => a.published) || articles[0];
+    let maxViews = 0;
+    
+    // Check views for all published articles
+    for (const article of articles.filter(a => a.published)) {
+        try {
+            const views = await getViews('article', article.id);
+            if (views > maxViews) {
+                maxViews = views;
+                mostViewedArticle = article;
+            }
+        } catch (error) {
+            console.error('Error getting views for article:', article.id, error);
+        }
+    }
+    
+    return mostViewedArticle;
+}
+
 // Homepage with open article preview
-function getHomePage() {
-    const trendingArticle = articles.find(a => a.published) || articles[0];
+async function getHomePage() {
+    const trendingArticle = await getMostViewedArticle();
+    const trendingCardHtml = trendingArticle ? await getTrendingCard(trendingArticle) : '';
     
     return `
         <div class="trending-section">
             <div class="container">
                 <div class="trending-header">
-                    <i class="fas fa-chart-line trending-icon"></i>
+                    <i class="fas fa-fire trending-icon"></i>
                     <div>
                         <h2 class="trending-title">Trending Now</h2>
                         <p class="trending-subtitle">Most read article this week</p>
                     </div>
                 </div>
                 
-                ${trendingArticle ? getTrendingCard(trendingArticle) : ''}
+                ${trendingCardHtml}
                 
                 <div class="category-filters">
                     <div class="category-filter all-articles">All Articles</div>
@@ -225,7 +249,7 @@ function getTrendingCard(article) {
                     <small style="color: #ccc;">By Alex Kim • ${formatDate(article.createdAt)}</small>
                 </div>
                 <div class="d-flex align-items-center gap-3">
-                    <span class="trending-views"><i class="fas fa-eye"></i> <span id="views-count-${article.id}">245</span> views</span>
+                    <span class="trending-views"><i class="fas fa-eye"></i> <span id="views-count-${article.id}">0</span> views</span>
                     <button class="btn btn-light" onclick="continueReading('${article.id}')">
                         Read Full Article
                     </button>
