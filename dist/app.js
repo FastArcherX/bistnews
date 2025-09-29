@@ -1,4 +1,4 @@
-// The Student Voice Application - Redesigned with Firebase Realtime Database
+// The Student Voice Application - Local Database System
 let currentPage = 'home';
 let articles = [];
 let announcements = [];
@@ -17,18 +17,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function loadAllData() {
     try {
-        console.log('Loading data from Firebase...');
+        console.log('Loading data from local database...');
         articles = await loadArticles() || [];
         announcements = await loadAnnouncements() || [];
         
         console.log('Loaded articles:', articles.length, 'announcements:', announcements.length);
         
-        // Combine Firebase data with demo data for better user experience
+        // Combine local data with demo data for better user experience
         if (articles.length === 0) {
-            console.log('No articles from Firebase, loading demo articles...');
+            console.log('No articles in local database, loading demo articles...');
             loadDemoData();
         } else {
-            console.log('Using Firebase data only');
+            console.log('Using local database data only');
         }
         
         // Load counts asynchronously after data is loaded
@@ -42,7 +42,7 @@ async function loadAllData() {
         }
     } catch (error) {
         console.error('Error loading data:', error);
-        // Fallback to demo data if Firebase is not available
+        // Fallback to demo data if local database encounters errors
         loadDemoData();
     }
 }
