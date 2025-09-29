@@ -262,7 +262,7 @@ function getTrendingCard(article) {
                 </div>
                 <div class="d-flex align-items-center gap-3">
                     <span class="trending-views"><i class="fas fa-eye"></i> <span id="views-count-${article.id}">0</span> views</span>
-                    <button class="btn btn-light" onclick="continueReading('${article.id}')">
+                    <button class="btn btn-light" onclick="openArticle('${article.id}')">
                         Read Full Article
                     </button>
                 </div>
@@ -280,7 +280,7 @@ function getArticlePreviewSection(article) {
                         <span class="preview-badge">Latest Magazine</span>
                         <h2 class="preview-title">${article.title}</h2>
                         <p class="preview-description">${article.description}</p>
-                        <button class="btn btn-primary" onclick="continueReading('${article.id}')">
+                        <button class="btn btn-primary" onclick="openArticle('${article.id}')">
                             <i class="fas fa-book-open"></i> Continue Reading
                         </button>
                     </div>
@@ -291,7 +291,7 @@ function getArticlePreviewSection(article) {
                             <img src="${article.pages?.[0] || article.coverImage}" 
                                  alt="Prima pagina" 
                                  class="preview-page-large"
-                                 onclick="continueReading('${article.id}')">
+                                 onclick="openArticle('${article.id}')">
                             <div class="page-number">1 / ${article.pages?.length || 1}</div>
                         </div>
                     </div>
@@ -475,7 +475,7 @@ function getArticoliPage() {
             <div class="row">
                 ${articles.filter(a => a.published).map(article => `
                     <div class="col-md-6 col-lg-4 mb-4">
-                        <div class="article-card-full" onclick="continueReading('${article.id}')">
+                        <div class="article-card-full" onclick="openArticle('${article.id}')">
                             <img src="${article.coverImage}" class="article-cover" alt="${article.title}">
                             <div class="card-body">
                                 <h5 class="article-title">${article.title}</h5>
@@ -1572,9 +1572,6 @@ function getArticleImagesGallery(photos) {
                     <div class="col-md-6 mb-3">
                         <div class="image-container" style="position: relative; cursor: pointer;" onclick="openImageModal('${photo.id}')">
                             <img src="${getImageDataUrl(photo.id)}" alt="${photo.name}" class="img-fluid rounded" style="width: 100%; height: 200px; object-fit: cover;">
-                            <div class="image-label" style="position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">
-                                <i class="fas fa-image"></i> ${photo.name}
-                            </div>
                         </div>
                     </div>
                 `).join('')}
