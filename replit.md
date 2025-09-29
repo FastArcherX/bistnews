@@ -1,16 +1,17 @@
-# BISTnews - Giornale Scolastico
+# The Student Voice - British International School of Timisoara
 
-## Panoramica del Progetto
-BISTnews è un'applicazione web per un giornale scolastico ora implementata come applicazione statica HTML/JavaScript. L'applicazione include funzionalità complete per la gestione degli articoli, upload PDF giornalini, annunci e area amministrativa.
+## Project Overview
+The Student Voice is a comprehensive student newspaper web application, redesigned with modern English interface matching the professional design of student news websites. The application includes complete functionality for article management, PDF magazine uploads, announcements, and administrative area.
 
-## Stato Attuale
-- ✅ **APP FUNZIONANTE** - Server HTTP attivo e stabile su porta 5000
-- ✅ Tutte le funzionalità core implementate e testate
-- ✅ Sistema di upload PDF per giornalini (admin + pubblico)
-- ✅ Gestione annunci completa (creazione/eliminazione)
-- ✅ Interfaccia responsive con Bootstrap
-- ✅ Workflow http-server configurato e stabile
-- ✅ **COMPLETATO:** Restyling completo con design professionale e Firebase integrato
+## Current Status
+- ✅ **FULLY FUNCTIONAL APP** - HTTP server active and stable on port 5000
+- ✅ All core features implemented and tested  
+- ✅ PDF upload system for magazines (admin + public)
+- ✅ Complete announcement management (create/delete)
+- ✅ Responsive interface with Bootstrap
+- ✅ http-server workflow configured and stable
+- ✅ **COMPLETED:** Complete redesign with professional "Student Voice" theme
+- ✅ **NEW:** English conversion with modern news website design matching reference
 
 ## Architettura del Progetto
 ```
