@@ -28,13 +28,29 @@ async function handleSubmitNewArticle(event) {
         if (photosInput.files.length > 0) {
             for (let i = 0; i < photosInput.files.length; i++) {
                 const file = photosInput.files[i];
-                // In a real implementation, this would upload to a server
-                // For now, we'll create a placeholder URL
-                const photoUrl = `uploads/${Date.now()}_${file.name}`;
+                // Convert file to base64 for localStorage storage
+                const base64Data = await fileToBase64(file);
+                const photoId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                const photoUrl = `uploads/articles/${photoId}_${file.name}`;
+                
+                // Save image data to localStorage
+                const imageData = {
+                    id: photoId,
+                    name: file.name,
+                    data: base64Data,
+                    type: file.type,
+                    size: file.size,
+                    url: photoUrl
+                };
+                
+                await saveImageToStorage(imageData);
+                
                 photos.push({
+                    id: photoId,
                     name: file.name,
                     url: photoUrl,
-                    size: file.size
+                    size: file.size,
+                    type: file.type
                 });
             }
         }
@@ -109,7 +125,45 @@ function closeSubmitForm() {
     clearSubmitForm();
 }
 
+// Helper function to convert file to base64
+function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+    });
+}
+
+// Save image to localStorage
+async function saveImageToStorage(imageData) {
+    try {
+        const images = JSON.parse(localStorage.getItem('images')) || {};
+        images[imageData.id] = imageData;
+        localStorage.setItem('images', JSON.stringify(images));
+        console.log('✅ Image saved to storage:', imageData.name);
+        return imageData.id;
+    } catch (error) {
+        console.error('❌ Error saving image:', error);
+        throw error;
+    }
+}
+
+// Get image from localStorage
+function getImageFromStorage(imageId) {
+    try {
+        const images = JSON.parse(localStorage.getItem('images')) || {};
+        return images[imageId] || null;
+    } catch (error) {
+        console.error('❌ Error loading image:', error);
+        return null;
+    }
+}
+
 // Export functions to global scope
 window.handleSubmitNewArticle = handleSubmitNewArticle;
 window.clearSubmitForm = clearSubmitForm;
 window.closeSubmitForm = closeSubmitForm;
+window.fileToBase64 = fileToBase64;
+window.saveImageToStorage = saveImageToStorage;
+window.getImageFromStorage = getImageFromStorage;
