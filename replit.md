@@ -15,20 +15,28 @@ The Student Voice is a comprehensive student newspaper web application, redesign
 
 ## Architettura del Progetto
 ```
-dist/                   # Applicazione web servita
-├── index.html         # Pagina principale
-└── app.js            # JavaScript applicazione
+dist/                               # Applicazione web servita
+├── index.html                     # Pagina principale
+├── app.js                         # JavaScript applicazione principale
+├── local-database.js              # Sistema database localStorage 
+├── submit-article-handlers.js     # Gestione submission articoli
+└── magazine/                      # Cartella PDF articoli
+    ├── [nome-articolo]/
+    │   ├── page1.jpg
+    │   └── page2.jpg
+    └── ...
 
-src/                   # Codice sorgente
-└── app.js            # Collegamento simbolico per sviluppo
+style-guidelines.json              # Guida colori e stili
+replit.md                         # Documentazione progetto
 ```
 
 ## Tecnologie Utilizzate
 - **Frontend**: HTML5, JavaScript ES6+, Bootstrap 5.3.2
+- **Database**: localStorage (sistema locale, zero costi)
 - **Server**: http-server (semplice e affidabile)
-- **Styling**: Bootstrap CDN + CSS personalizzato
+- **Styling**: Bootstrap CDN + CSS personalizzato, colori da style-guidelines.json
 - **Funzionalità**: JavaScript vanilla per SPA behavior
-- **Mock Data**: Dati dimostrativi per sviluppo
+- **File Handling**: Sistema upload diretto con preview
 
 ## Funzionalità Implementate
 
@@ -57,14 +65,23 @@ src/                   # Codice sorgente
 - ❌ **Risolto:** Conflitti TypeScript - usato JavaScript puro
 - ✅ **Risultato:** App stabile e performante
 
-## Recent Changes (29/09/2024) - COMPLETE ENGLISH REDESIGN
+## Latest Changes (29/09/2024) - COMPLETE SYSTEM TRANSFORMATION
+- ✅ **FIREBASE TO LOCALSTORAGE MIGRATION** - Complete replacement of Firebase with localStorage system for cost savings
+- ✅ **DIRECT ARTICLE SUBMISSION** - New "Submit New Article" interface in Admin Panel with file upload, tags, and categories
+- ✅ **REAL TRENDING FUNCTIONALITY** - Dynamic trending based on actual view counts with animated fire emoji icon
+- ✅ **ABOUT SECTION ADDED** - Professional "About The Student Voice" section at homepage bottom with 3-column feature layout
+- ✅ **NAVIGATION SIMPLIFIED** - Removed Writer/Editor Portal and "Join Us", streamlined to single "Admin" access
+- ✅ **ARTICLE TAGGING SYSTEM** - Complete categorization with 10+ categories (School News, Features, Opinion, Sports, etc.)
+- ✅ **ENHANCED ADMIN INTERFACE** - Tab-based admin with "Submit New Article" as primary tab
+- ✅ **ANIMATED UI ELEMENTS** - Fire emoji animation for trending articles, improved visual feedback
+
+## Previous Changes (29/09/2024) - ENGLISH REDESIGN  
 - ✅ **COMPLETE REBRAND** - Transformed from "BISTnews" to "The Student Voice"
 - ✅ **ENGLISH INTERFACE** - All text content converted from Italian to English
 - ✅ **NEW DESIGN SYSTEM** - Professional news website design matching reference
 - ✅ **TRENDING NOW SECTION** - Modern card-based layout with category filters
-- ✅ **UPDATED COLOR SCHEME** - Blue/cream theme replacing red/gold
-- ✅ **ENHANCED NAVIGATION** - Complete menu redesign with Writer/Editor Portal
-- ✅ **ADMIN SYSTEM MAINTAINED** - All functionality preserved with English translations
+- ✅ **UPDATED COLOR SCHEME** - Red/cream theme using style-guidelines.json colors
+- ✅ **ENHANCED NAVIGATION** - Complete menu redesign and modernization
 
 ## Previous Changes (28/09/2024) - TECHNICAL FOUNDATION
 - ✅ **SISTEMA ARTICOLI PDF LOCALE** - Gestione articoli da cartella `magazine/` locale
@@ -77,12 +94,14 @@ src/                   # Codice sorgente
 - ✅ **MODERAZIONE COMMENTI** - Pannello admin per gestire tutti i commenti
 - ✅ **STRUTTURA CARTELLE MAGAZINE** - Sistema file locale senza costi Storage
 
-## Architettura Finale
-- **Firebase Auth** - Solo accesso admin con email/password (no registrazione)
-- **Firebase Realtime Database** - Articoli, annunci, commenti e messaggi
+## Architettura Finale (localStorage System)
+- **Local Authentication** - Sistema admin semplificato senza costi Firebase
+- **localStorage Database** - Tutti i dati salvati localmente nel browser (articoli, annunci, visualizzazioni)
+- **Direct Article Submission** - Interface completa per submit articoli con tag e categorie
 - **Sistema File Locale** - PDF nella cartella `magazine/[nome-articolo]/page1.jpg, page2.jpg...`
-- **NO Firebase Storage** - Evita costi, gestione manuale file
-- **Controllo Admin Completo** - Pubblicazione/ritiro + moderazione commenti
+- **Zero Database Costs** - Nessun costo Firebase, tutto gestito localmente
+- **Real-time Trending** - Sistema trending basato su visualizzazioni reali con emoji animata
+- **Controllo Admin Completo** - Submit diretto, gestione contenuti, moderazione
 
 ## Struttura Cartelle Magazine
 ```
