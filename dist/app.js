@@ -1218,49 +1218,40 @@ async function loadAllCommentsForModeration() {
             return;
         }
         
-        const commentsRef = ref(database, 'comments');
-        const snapshot = await get(commentsRef);
+        // Get all comments from localStorage
+        const commentsData = JSON.parse(localStorage.getItem('comments')) || {};
+        const allComments = Object.values(commentsData).sort((a, b) => b.createdAt - a.createdAt);
         
-        if (snapshot.exists()) {
-            const data = snapshot.val();
-            const allComments = Object.keys(data).map(key => ({
-                id: key,
-                ...data[key]
-            })).sort((a, b) => b.createdAt - a.createdAt);
-            
-            if (allComments.length === 0) {
-                commentsContainer.innerHTML = '<p class="text-muted">Nessun commento da moderare.</p>';
-            } else {
-                commentsContainer.innerHTML = allComments.map(comment => `
-                    <div class="comment-moderation-item mb-3">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <h6 class="mb-1">${comment.author}</h6>
-                                        <small class="text-muted">
-                                            ${formatDate(comment.createdAt)} • 
-                                            ${comment.itemType === 'article' ? 'Articolo' : 'Annuncio'}
-                                        </small>
-                                    </div>
-                                    <button class="btn btn-sm btn-outline-danger" onclick="handleDeleteComment('${comment.id}')">
-                                        <i class="fas fa-trash"></i> Elimina
-                                    </button>
+        if (allComments.length === 0) {
+            commentsContainer.innerHTML = '<p class="text-muted">No comments to moderate yet.</p>';
+        } else {
+            commentsContainer.innerHTML = allComments.map(comment => `
+                <div class="comment-moderation-item mb-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">${comment.author}</h6>
+                                    <small class="text-muted">
+                                        ${formatDate(comment.createdAt)} • 
+                                        ${comment.itemType === 'article' ? 'Article' : 'Weekly News'}
+                                    </small>
                                 </div>
-                                <p class="mt-2 mb-0">${comment.content}</p>
+                                <button class="btn btn-sm btn-outline-danger" onclick="handleDeleteComment('${comment.id}')">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
                             </div>
+                            <p class="mt-2 mb-0">${comment.content}</p>
                         </div>
                     </div>
-                `).join('');
-            }
-        } else {
-            commentsContainer.innerHTML = '<p class="text-muted">Nessun commento da moderare.</p>';
+                </div>
+            `).join('');
         }
     } catch (error) {
         console.error('Error loading comments:', error);
         const container = document.getElementById('allComments');
         if (container) {
-            container.innerHTML = '<p class="text-danger">Errore nel caricamento dei commenti.</p>';
+            container.innerHTML = '<p class="text-danger">Error loading comments.</p>';
         }
     }
 }
@@ -1293,8 +1284,8 @@ async function handleAddWeeklyNews(event) {
     const priority = document.getElementById('announcementPriority').value;
     
     try {
-        await saveAnnouncement({ title, content, priority });
-        alert('Annuncio salvato con successo!');
+        await saveWeeklyNews({ title, content, priority });
+        alert('Weekly news saved successfully!');
         
         // Reload data and refresh admin panel
         await loadAllData();
