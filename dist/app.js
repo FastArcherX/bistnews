@@ -23,9 +23,8 @@ async function loadAllData() {
         
         console.log('Loaded articles:', articles.length, 'weeklyNews:', weeklyNews.length);
         
-        // Always load demo data for better user experience
-        console.log('Loading demo data for better content showcase...');
-        loadDemoData();
+        // No demo data - use only real content
+        console.log('Using local database data only');
         
         // Load counts asynchronously after data is loaded
         setTimeout(() => {
@@ -38,8 +37,6 @@ async function loadAllData() {
         }
     } catch (error) {
         console.error('Error loading data:', error);
-        // Fallback to demo data if local database encounters errors
-        loadDemoData();
     }
 }
 
@@ -81,106 +78,7 @@ async function loadAllCounts() {
     }
 }
 
-function loadDemoData() {
-    articles = [
-        {
-            id: 'demo1',
-            title: "BIST Robotics Team Wins Regional Championship!",
-            content: "Our BIST robotics team has made history by winning the regional championship with their innovative water purification system. The team, led by Emma Rodriguez from Year 11, spent months perfecting their design that can clean contaminated water using solar power and advanced filtration techniques. This incredible achievement qualifies them for the national championship next month, where they'll represent not just BIST, but the entire Timisoara region. The project demonstrates the high-quality STEM education and innovative thinking that BIST fosters in its students.",
-            author: "Alex Kim",
-            tags: ["school-news", "robotics", "championship"],
-            published: true,
-            createdAt: Date.now() - 86400000,
-            type: 'text_article',
-            views: 247,
-            comments: 0,
-            photos: []
-        },
-        {
-            id: 'demo2',
-            title: "Hamilton Jr. Auditions Begin at BIST",
-            content: "The drama department at BIST is buzzing with excitement as auditions for Hamilton Jr. begin this week. Drama club director Sarah Chen expects strong turnout from students across all year groups. The musical adaptation brings the award-winning Broadway show to our school stage, offering students an incredible opportunity to showcase their talents. Auditions will take place in the main hall from 3:30-5:00 PM through Friday.",
-            author: "Sarah Chen",
-            tags: ["features", "drama", "auditions"],
-            published: true,
-            createdAt: Date.now() - 172800000,
-            type: 'text_article',
-            views: 156,
-            comments: 7,
-            photos: []
-        },
-        {
-            id: 'demo3',
-            title: "BIST Eagles Basketball Team Reaches Finals",
-            content: "After an incredible season, our BIST Eagles basketball team is ready for the championship game this Friday night. Captain Jordan Martinez leads a team that has shown remarkable improvement and teamwork throughout the season. The final game will be held at the Sports Complex at 7:00 PM, and all students, families, and supporters are encouraged to attend and cheer on our Eagles!",
-            author: "Jordan Martinez",
-            tags: ["sports", "basketball", "finals"],
-            published: true,
-            createdAt: Date.now() - 259200000,
-            type: 'text_article',
-            views: 189,
-            comments: 12,
-            photos: []
-        },
-        {
-            id: 'demo4',
-            title: "Student Spotlight: Maria's Environmental Initiative",
-            content: "Year 10 student Maria Popescu has launched an ambitious environmental initiative at BIST, focusing on reducing single-use plastics and implementing recycling programs across the school. Her project has already led to the installation of new water bottle filling stations and the introduction of reusable lunch containers in the cafeteria. Maria hopes to expand the program to include composting and solar panel installation.",
-            author: "Maria Popescu",
-            tags: ["features", "environment", "student-initiative"],
-            published: true,
-            createdAt: Date.now() - 345600000,
-            type: 'text_article',
-            views: 134,
-            comments: 8,
-            photos: []
-        },
-        {
-            id: 'demo5',
-            title: "Creative Corner: Poetry Competition Winners",
-            content: "The annual BIST Poetry Competition has concluded with some truly inspiring submissions from our talented student writers. This year's theme, 'Voices of Tomorrow', encouraged students to explore themes of hope, change, and their vision for the future. First place winner Elena Dumitrescu's poem 'Digital Dreams' captivated judges with its thoughtful exploration of technology's role in shaping our world.",
-            author: "Elena Dumitrescu",
-            tags: ["creative", "poetry", "competition"],
-            published: true,
-            createdAt: Date.now() - 432000000,
-            type: 'text_article',
-            views: 76,
-            comments: 15,
-            photos: []
-        },
-        {
-            id: 'demo6',
-            title: "Tech Club Builds AI-Powered Study Assistant",
-            content: "Members of BIST's Tech Club have been working on an exciting new project: an AI-powered study assistant that helps students organize their homework and create personalized study schedules. The innovative tool uses machine learning to adapt to each student's learning style and preferences. Beta testing begins next week with Year 9 and 10 students.",
-            author: "Tech Club Team",
-            tags: ["tech", "innovation", "study-tools"],
-            published: true,
-            createdAt: Date.now() - 518400000,
-            type: 'text_article',
-            views: 203,
-            comments: 9,
-            photos: []
-        }
-    ];
-    
-    // Keep Firebase weeklyNews if any, otherwise add demo weeklyNews
-    if (weeklyNews.length === 0) {
-        weeklyNews = [
-            {
-                id: 'demo_ann1',
-                title: "New Cafeteria Hours",
-                content: "Starting October 1st, the school cafeteria will adopt new hours: Lunch from 12:30 to 14:00, Snacks from 15:00 to 15:30",
-                priority: "high",
-                createdAt: Date.now() - 43200000
-            }
-        ];
-    }
-    
-    console.log('Demo data loaded, refreshing homepage...');
-    // Refresh the current page to show new data
-    const currentPage = window.currentPage || 'home';
-    showPage(currentPage);
-}
+// No demo data function needed
 
 // Page Navigation
 async function showPage(page) {
