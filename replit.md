@@ -74,6 +74,14 @@ replit.md                         # Documentazione progetto
 - ✅ **ARTICLE TAGGING SYSTEM** - Complete categorization with 10+ categories (School News, Features, Opinion, Sports, etc.)
 - ✅ **ENHANCED ADMIN INTERFACE** - Tab-based admin with "Submit New Article" as primary tab
 - ✅ **ANIMATED UI ELEMENTS** - Fire emoji animation for trending articles, improved visual feedback
+- ✅ **MODERN CARD LAYOUT** - Colorful article cards with icons, tags, and metadata matching reference design
+- ✅ **IMAGE UPLOAD SYSTEM** - Complete image storage in localStorage with base64 encoding
+- ✅ **ARTICLE MODAL VIEW** - Professional article display with image galleries and comments section
+- ✅ **TAG-BASED FILTERING** - Interactive category filters with colored buttons
+- ✅ **SORT FUNCTIONALITY** - Sort articles by newest, oldest, most popular, or alphabetical
+- ✅ **UNIFIED TAGS SYSTEM** - Removed categories, unified everything under tags
+- ✅ **WEEKLY NEWS RENAME** - Announcements renamed to Weekly News throughout the system
+- ✅ **PASSWORD AUTHENTICATION** - Simplified admin login with single password: "bistontop2025"
 
 ## Previous Changes (29/09/2024) - ENGLISH REDESIGN  
 - ✅ **COMPLETE REBRAND** - Transformed from "BISTnews" to "The Student Voice"
