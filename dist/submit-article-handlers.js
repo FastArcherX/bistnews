@@ -5,12 +5,12 @@ async function handleSubmitNewArticle(event) {
     event.preventDefault();
     
     const title = document.getElementById('newArticleTitle').value.trim();
-    const tags = document.getElementById('articleTags').value.trim();
+    const selectedTag = document.getElementById('articleTags').value;
     const content = document.getElementById('articleContent').value.trim();
     const author = document.getElementById('authorName').value.trim();
     const photosInput = document.getElementById('articlePhotos');
     
-    if (!title || !tags || !content || !author) {
+    if (!title || !selectedTag || !content || !author) {
         alert('Please fill in all required fields.');
         return;
     }
@@ -54,8 +54,8 @@ async function handleSubmitNewArticle(event) {
             }
         }
         
-        // Process tags
-        const tagArray = tags ? tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : [];
+        // Process tags - now using single selected tag
+        const tagArray = selectedTag ? [selectedTag] : [];
         
         // Create article object  
         const articleData = {

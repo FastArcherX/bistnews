@@ -742,8 +742,20 @@ function getSubmitArticleForm() {
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label for="articleTags" class="form-label">Tags <span class="text-danger">*</span></label>
-                                            <input type="text" class="form-control" id="articleTags" placeholder="e.g., school-news, robotics, championship" required>
-                                            <small class="text-muted">Separate multiple tags with commas. Available: school-news, features, opinion, sports, creative, humor, tech, lifestyle, music, reviews</small>
+                                            <select class="form-control" id="articleTags" required>
+                                                <option value="">Select a tag...</option>
+                                                <option value="school-news">School News</option>
+                                                <option value="features">Features</option>
+                                                <option value="opinion">Opinion</option>
+                                                <option value="sports">Sports</option>
+                                                <option value="creative">Creative</option>
+                                                <option value="humor">Humor</option>
+                                                <option value="tech">Tech</option>
+                                                <option value="lifestyle">Lifestyle</option>
+                                                <option value="music">Music</option>
+                                                <option value="reviews">Reviews</option>
+                                            </select>
+                                            <small class="text-muted">Select the primary tag for this article</small>
                                         </div>
                                     </div>
                                 </div>
@@ -758,13 +770,6 @@ function getSubmitArticleForm() {
                                         <div class="mb-3">
                                             <label for="authorName" class="form-label">Author Name <span class="text-danger">*</span></label>
                                             <input type="text" class="form-control" id="authorName" required>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="articleTags" class="form-label">Tags (Optional)</label>
-                                            <input type="text" class="form-control" id="articleTags" placeholder="e.g., robotics, championship, innovation">
-                                            <small class="text-muted">Separate tags with commas</small>
                                         </div>
                                     </div>
                                 </div>
