@@ -58,20 +58,24 @@ class LocalDatabase {
     }
 
     // Auth functions
-    async loginAdmin(email, password) {
+    async loginAdmin(password) {
         try {
-            const users = this.getCollection('users');
-            const user = Object.values(users).find(u => u.email === email);
-            
-            if (user && user.password === password) {
-                this.currentUser = user;
-                console.log('Admin logged in:', user.email);
-                return { user: user, success: true };
+            // Check password against admin configuration
+            if (password === window.ADMIN_CONFIG?.password) {
+                this.currentUser = { 
+                    name: window.ADMIN_CONFIG?.adminName || 'Admin',
+                    email: 'admin@studentvoice.com',
+                    role: 'admin'
+                };
+                window.isAdmin = true;
+                window.currentUser = this.currentUser;
+                console.log('✅ Admin logged in successfully');
+                return { user: this.currentUser, success: true };
             } else {
-                throw new Error('Incorrect email or password. Please check your credentials.');
+                throw new Error('Password incorrect. Please check your credentials.');
             }
         } catch (error) {
-            console.error('Login error:', error);
+            console.error('❌ Login error:', error);
             throw error;
         }
     }
@@ -343,7 +347,7 @@ class LocalDatabase {
 const localDB = new LocalDatabase();
 
 // Export functions to maintain compatibility with existing Firebase code
-window.loginAdmin = (email, password) => localDB.loginAdmin(email, password);
+window.loginAdmin = (password) => localDB.loginAdmin(password);
 window.logoutAdmin = () => localDB.logoutAdmin();
 window.saveArticle = (data) => localDB.saveArticle(data);
 window.loadArticles = () => localDB.loadArticles();

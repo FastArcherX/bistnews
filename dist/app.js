@@ -585,12 +585,8 @@ function getAdminPage() {
                             <h3 class="text-center mb-4">Admin Access</h3>
                             <form onsubmit="handleAdminLogin(event)">
                                 <div class="mb-3">
-                                    <label for="adminEmail" class="form-label">Email</label>
-                                    <input type="email" class="form-control" id="adminEmail" required>
-                                </div>
-                                <div class="mb-3">
                                     <label for="adminPassword" class="form-label">Password</label>
-                                    <input type="password" class="form-control" id="adminPassword" required>
+                                    <input type="password" class="form-control" id="adminPassword" placeholder="Enter admin password" required>
                                 </div>
                                 <button type="submit" class="btn btn-primary w-100">Login</button>
                             </form>
@@ -616,7 +612,7 @@ function getAdminPanel() {
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="page-title">Admin Panel</h2>
             <div>
-                <span class="me-3">Welcome, ${currentUser?.email}</span>
+                <span class="me-3">Welcome, ${window.ADMIN_CONFIG?.adminName || 'Admin'}</span>
                 <button class="btn btn-outline-danger" onclick="handleLogout()">Logout</button>
             </div>
         </div>
@@ -1027,14 +1023,13 @@ function updateReaderPage() {
 // Authentication functions
 async function handleAdminLogin(event) {
     event.preventDefault();
-    const email = document.getElementById('adminEmail').value;
     const password = document.getElementById('adminPassword').value;
     
     try {
-        await loginAdmin(email, password);
+        await loginAdmin(password);
         checkAdminAuth();
     } catch (error) {
-        alert('Errore di accesso: ' + error.message);
+        alert('Password incorrect. Please try again.');
     }
 }
 
