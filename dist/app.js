@@ -234,6 +234,60 @@ async function getHomePage() {
                 </div>
             </div>
         </div>
+        
+        <!-- About The Student Voice Section -->
+        <div class="about-section py-5 mt-5" style="background-color: #f0e5cb;">
+            <div class="container">
+                <div class="text-center mb-5">
+                    <h2 class="about-title" style="color: #771510; font-weight: bold; font-size: 2.5rem;">About The Student Voice</h2>
+                    <p class="about-subtitle" style="color: #666; font-size: 1.1rem; max-width: 600px; margin: 0 auto;">
+                        The official digital newspaper of British International School of Timisoara, 
+                        bringing you the latest news, insights, and stories from our vibrant community.
+                    </p>
+                </div>
+                
+                <div class="row text-center">
+                    <div class="col-md-4 mb-4">
+                        <div class="about-feature">
+                            <div class="feature-icon mb-3">
+                                <i class="fas fa-pencil-alt" style="font-size: 3rem; color: #771510;"></i>
+                            </div>
+                            <h4 style="color: #771510; font-weight: 600;">Student Journalists</h4>
+                            <p style="color: #666;">
+                                Our dedicated team of student writers brings diverse perspectives 
+                                and authentic voices to every story we tell.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-4">
+                        <div class="about-feature">
+                            <div class="feature-icon mb-3">
+                                <i class="fas fa-bullseye" style="font-size: 3rem; color: #771510;"></i>
+                            </div>
+                            <h4 style="color: #771510; font-weight: 600;">Quality Content</h4>
+                            <p style="color: #666;">
+                                From breaking school news to in-depth features, we deliver 
+                                well-researched and engaging content for our community.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-4">
+                        <div class="about-feature">
+                            <div class="feature-icon mb-3">
+                                <i class="fas fa-comments" style="font-size: 3rem; color: #771510;"></i>
+                            </div>
+                            <h4 style="color: #771510; font-weight: 600;">BIST Community</h4>
+                            <p style="color: #666;">
+                                Connecting students, teachers, and families through shared 
+                                stories and experiences that matter to our school community.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     `;
 }
 
