@@ -89,9 +89,9 @@ function loadDemoData() {
     articles = [
         {
             id: 'demo1',
-            title: "Benvenuti al nuovo anno scolastico",
+            title: "BIST Robotics Team Wins Regional Championship!",
             folderName: "Benvenuti al nuovo anno scolastico",
-            description: "Inizia un nuovo entusiasmante anno scolastico al BIST. Scopri tutte le novità e gli eventi in programma.",
+            description: "Our BIST robotics team has made history by winning the regional championship with their innovative water purification system. The team, led by Emma Rodriguez from Year 11, spent months perfecting thei...",
             coverImage: "magazine/Benvenuti al nuovo anno scolastico/page1.jpg",
             pages: [
                 "magazine/Benvenuti al nuovo anno scolastico/page1.jpg",
@@ -103,9 +103,9 @@ function loadDemoData() {
         },
         {
             id: 'demo2',
-            title: "Progetto sostenibilità ambientale",
+            title: "Sustainability Initiative Launches",
             folderName: "Progetto sostenibilità ambientale",
-            description: "La nostra scuola partecipa al progetto di sostenibilità ambientale con nuove iniziative eco-friendly.",
+            description: "Our school participates in an environmental sustainability project with new eco-friendly initiatives.",
             coverImage: "magazine/Progetto sostenibilità ambientale/page1.jpg",
             pages: [
                 "magazine/Progetto sostenibilità ambientale/page1.jpg",
@@ -121,8 +121,8 @@ function loadDemoData() {
         announcements = [
             {
                 id: 'demo_ann1',
-                title: "Nuovi orari mensa",
-                content: "A partire dal 1° ottobre, la mensa scolastica adotterà i nuovi orari: Pranzo dalle 12:30 alle 14:00, Merenda dalle 15:00 alle 15:30",
+                title: "New Cafeteria Hours",
+                content: "Starting October 1st, the school cafeteria will adopt new hours: Lunch from 12:30 to 14:00, Snacks from 15:00 to 15:30",
                 priority: "high",
                 createdAt: Date.now() - 43200000
             }
@@ -504,7 +504,7 @@ function getAdminPage() {
                 <div class="row justify-content-center">
                     <div class="col-md-6">
                         <div class="admin-login-card">
-                            <h3 class="text-center mb-4">Accesso Admin</h3>
+                            <h3 class="text-center mb-4">Admin Access</h3>
                             <form onsubmit="handleAdminLogin(event)">
                                 <div class="mb-3">
                                     <label for="adminEmail" class="form-label">Email</label>
@@ -514,10 +514,10 @@ function getAdminPage() {
                                     <label for="adminPassword" class="form-label">Password</label>
                                     <input type="password" class="form-control" id="adminPassword" required>
                                 </div>
-                                <button type="submit" class="btn btn-primary w-100">Accedi</button>
+                                <button type="submit" class="btn btn-primary w-100">Login</button>
                             </form>
                             <div class="text-center mt-3">
-                                <small class="text-muted">Accesso riservato agli amministratori</small>
+                                <small class="text-muted">Access restricted to administrators</small>
                             </div>
                         </div>
                     </div>
@@ -536,9 +536,9 @@ function getAdminPage() {
 function getAdminPanel() {
     return `
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="page-title">Pannello Admin</h2>
+            <h2 class="page-title">Admin Panel</h2>
             <div>
-                <span class="me-3">Benvenuto, ${currentUser?.email}</span>
+                <span class="me-3">Welcome, ${currentUser?.email}</span>
                 <button class="btn btn-outline-danger" onclick="handleLogout()">Logout</button>
             </div>
         </div>
@@ -546,13 +546,13 @@ function getAdminPanel() {
         <div class="admin-tabs">
             <ul class="nav nav-tabs" id="adminTabs">
                 <li class="nav-item">
-                    <a class="nav-link active" href="#articoli-tab" data-bs-toggle="tab">Gestione Articoli</a>
+                    <a class="nav-link active" href="#articoli-tab" data-bs-toggle="tab">Manage Articles</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#annunci-tab" data-bs-toggle="tab">Gestione Annunci</a>
+                    <a class="nav-link" href="#annunci-tab" data-bs-toggle="tab">Manage Announcements</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#messaggi-tab" data-bs-toggle="tab">Messaggi</a>
+                    <a class="nav-link" href="#messaggi-tab" data-bs-toggle="tab">Messages</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="#commenti-tab" data-bs-toggle="tab">Moderazione Commenti</a>

@@ -1,4 +1,4 @@
-// Firebase integration for BISTnews
+// Firebase integration for The Student Voice
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
 import { getDatabase, ref, push, set, get, remove, onValue, child } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
@@ -19,7 +19,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const database = getDatabase(app);
 const storage = getStorage(app);
-console.log('🔥 Firebase inizializzato e pronto per BISTnews');
+console.log('🔥 Firebase initialized and ready for The Student Voice');
 
 // Auth functions
 window.loginAdmin = async function(email, password) {
@@ -35,7 +35,7 @@ window.loginAdmin = async function(email, password) {
         return true;
     } catch (error) {
         console.error('Login error:', error);
-        throw new Error('Email o password non corretti. Verifica le tue credenziali Firebase.');
+        throw new Error('Incorrect email or password. Please check your Firebase credentials.');
     }
 };
 
@@ -47,7 +47,7 @@ window.registerAdmin = async function(email, password) {
         return true;
     } catch (error) {
         console.error('Registration error:', error);
-        throw new Error('Errore durante la registrazione: ' + error.message);
+        throw new Error('Registration error: ' + error.message);
     }
 };
 
@@ -303,5 +303,5 @@ window.uploadCoverImage = async function(file, articleTitle) {
     }
 };
 
-console.log('🚀 BISTnews - Sistema completo e funzionale!');
+console.log('🚀 The Student Voice - Complete and functional system!');
 export { app, auth, database, storage };
