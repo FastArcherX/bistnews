@@ -10,7 +10,7 @@ class LocalDatabase {
 
     initializeDatabase() {
         // Initialize empty collections if they don't exist
-        const collections = ['articles', 'announcements', 'comments', 'messages', 'views', 'users'];
+        const collections = ['articles', 'weeklyNews', 'comments', 'messages', 'views', 'users'];
         
         collections.forEach(collection => {
             if (!localStorage.getItem(collection)) {
@@ -158,19 +158,19 @@ class LocalDatabase {
     }
 
     // Announcements management
-    async saveAnnouncement(announcementData) {
+    async saveWeeklyNews(announcementData) {
         try {
-            const announcements = this.getCollection('announcements');
+            const weeklyNews = this.getCollection('weeklyNews');
             const id = this.generateId();
             
-            announcements[id] = {
+            weeklyNews[id] = {
                 id: id,
                 ...announcementData,
                 createdAt: Date.now(),
                 authorId: this.currentUser?.id
             };
             
-            this.setCollection('announcements', announcements);
+            this.setCollection('weeklyNews', weeklyNews);
             console.log('Announcement saved:', id);
             return id;
         } catch (error) {
@@ -179,21 +179,21 @@ class LocalDatabase {
         }
     }
 
-    async loadAnnouncements() {
+    async loadWeeklyNews() {
         try {
-            const announcements = this.getCollection('announcements');
-            return Object.values(announcements).sort((a, b) => b.createdAt - a.createdAt);
+            const weeklyNews = this.getCollection('weeklyNews');
+            return Object.values(weeklyNews).sort((a, b) => b.createdAt - a.createdAt);
         } catch (error) {
-            console.error('Error loading announcements:', error);
+            console.error('Error loading weeklyNews:', error);
             return [];
         }
     }
 
-    async deleteAnnouncementFromDB(id) {
+    async deleteWeeklyNewsFromDB(id) {
         try {
-            const announcements = this.getCollection('announcements');
-            delete announcements[id];
-            this.setCollection('announcements', announcements);
+            const weeklyNews = this.getCollection('weeklyNews');
+            delete weeklyNews[id];
+            this.setCollection('weeklyNews', weeklyNews);
             console.log('Announcement deleted:', id);
         } catch (error) {
             console.error('Error deleting announcement:', error);
@@ -321,14 +321,14 @@ class LocalDatabase {
     async getAllData() {
         return {
             articles: await this.loadArticles(),
-            announcements: await this.loadAnnouncements(),
+            weeklyNews: await this.loadWeeklyNews(),
             views: this.getCollection('views'),
             comments: this.getCollection('comments')
         };
     }
 
     async clearAllData() {
-        const collections = ['articles', 'announcements', 'comments', 'messages', 'views'];
+        const collections = ['articles', 'weeklyNews', 'comments', 'messages', 'views'];
         collections.forEach(collection => {
             localStorage.removeItem(collection);
         });
@@ -354,9 +354,9 @@ window.loadArticles = () => localDB.loadArticles();
 window.deleteArticle = (id) => localDB.deleteArticle(id);
 window.publishArticle = (id) => localDB.publishArticle(id);
 window.unpublishArticle = (id) => localDB.unpublishArticle(id);
-window.saveAnnouncement = (data) => localDB.saveAnnouncement(data);
-window.loadAnnouncements = () => localDB.loadAnnouncements();
-window.deleteAnnouncementFromDB = (id) => localDB.deleteAnnouncementFromDB(id);
+window.saveWeeklyNews = (data) => localDB.saveWeeklyNews(data);
+window.loadWeeklyNews = () => localDB.loadWeeklyNews();
+window.deleteWeeklyNewsFromDB = (id) => localDB.deleteWeeklyNewsFromDB(id);
 window.saveComment = (itemType, itemId, data) => localDB.saveComment(itemType, itemId, data);
 window.loadComments = (itemType, itemId) => localDB.loadComments(itemType, itemId);
 window.deleteComment = (id) => localDB.deleteComment(id);

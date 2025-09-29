@@ -1,7 +1,7 @@
 // The Student Voice Application - Local Database System
 let currentPage = 'home';
 let articles = [];
-let announcements = [];
+let weeklyNews = [];
 let comments = {};
 let isAdmin = false;
 let currentUser = null;
@@ -19,9 +19,9 @@ async function loadAllData() {
     try {
         console.log('Loading data from local database...');
         articles = await loadArticles() || [];
-        announcements = await loadAnnouncements() || [];
+        weeklyNews = await loadWeeklyNews() || [];
         
-        console.log('Loaded articles:', articles.length, 'announcements:', announcements.length);
+        console.log('Loaded articles:', articles.length, 'weeklyNews:', weeklyNews.length);
         
         // Combine local data with demo data for better user experience
         if (articles.length === 0) {
@@ -68,7 +68,7 @@ async function loadAllCounts() {
         }
     }
     
-    for (const announcement of announcements) {
+    for (const announcement of weeklyNews) {
         try {
             const commentsCount = await getCommentsCount('announcement', announcement.id);
             const viewsCount = await getViews('announcement', announcement.id);
@@ -116,9 +116,9 @@ function loadDemoData() {
         }
     ];
     
-    // Keep Firebase announcements if any, otherwise add demo announcements
-    if (announcements.length === 0) {
-        announcements = [
+    // Keep Firebase weeklyNews if any, otherwise add demo weeklyNews
+    if (weeklyNews.length === 0) {
+        weeklyNews = [
             {
                 id: 'demo_ann1',
                 title: "New Cafeteria Hours",
@@ -207,17 +207,17 @@ async function getHomePage() {
                 ${trendingCardHtml}
                 
                 <div class="category-filters">
-                    <div class="category-filter all-articles">All Articles</div>
-                    <div class="category-filter"><i class="fas fa-graduation-cap"></i> School News</div>
-                    <div class="category-filter"><i class="fas fa-star"></i> Features</div>
-                    <div class="category-filter"><i class="fas fa-comment"></i> Opinion</div>
-                    <div class="category-filter"><i class="fas fa-futbol"></i> Sports</div>
-                    <div class="category-filter"><i class="fas fa-palette"></i> Creative</div>
-                    <div class="category-filter"><i class="fas fa-laugh"></i> Humor</div>
-                    <div class="category-filter"><i class="fas fa-laptop"></i> Tech</div>
-                    <div class="category-filter"><i class="fas fa-leaf"></i> Lifestyle</div>
-                    <div class="category-filter"><i class="fas fa-music"></i> Music</div>
-                    <div class="category-filter"><i class="fas fa-star"></i> Reviews</div>
+                    <div class="category-filter all-articles" onclick="filterByTag('all')" style="background: #771510; color: white; padding: 8px 16px; border-radius: 20px; cursor: pointer; margin: 4px; display: inline-block;">All Articles</div>
+                    <div class="category-filter" onclick="filterByTag('school-news')" style="background: #e74c3c; color: white; padding: 8px 16px; border-radius: 20px; cursor: pointer; margin: 4px; display: inline-block;"><i class="fas fa-graduation-cap"></i> School News</div>
+                    <div class="category-filter" onclick="filterByTag('features')" style="background: #f39c12; color: white; padding: 8px 16px; border-radius: 20px; cursor: pointer; margin: 4px; display: inline-block;"><i class="fas fa-star"></i> Features</div>
+                    <div class="category-filter" onclick="filterByTag('opinion')" style="background: #9b59b6; color: white; padding: 8px 16px; border-radius: 20px; cursor: pointer; margin: 4px; display: inline-block;"><i class="fas fa-comment"></i> Opinion</div>
+                    <div class="category-filter" onclick="filterByTag('sports')" style="background: #3498db; color: white; padding: 8px 16px; border-radius: 20px; cursor: pointer; margin: 4px; display: inline-block;"><i class="fas fa-running"></i> Sports</div>
+                    <div class="category-filter" onclick="filterByTag('creative')" style="background: #e91e63; color: white; padding: 8px 16px; border-radius: 20px; cursor: pointer; margin: 4px; display: inline-block;"><i class="fas fa-palette"></i> Creative</div>
+                    <div class="category-filter" onclick="filterByTag('humor')" style="background: #ff9800; color: white; padding: 8px 16px; border-radius: 20px; cursor: pointer; margin: 4px; display: inline-block;"><i class="fas fa-laugh"></i> Humor</div>
+                    <div class="category-filter" onclick="filterByTag('tech')" style="background: #2196f3; color: white; padding: 8px 16px; border-radius: 20px; cursor: pointer; margin: 4px; display: inline-block;"><i class="fas fa-laptop"></i> Tech</div>
+                    <div class="category-filter" onclick="filterByTag('lifestyle')" style="background: #4caf50; color: white; padding: 8px 16px; border-radius: 20px; cursor: pointer; margin: 4px; display: inline-block;"><i class="fas fa-leaf"></i> Lifestyle</div>
+                    <div class="category-filter" onclick="filterByTag('music')" style="background: #9c27b0; color: white; padding: 8px 16px; border-radius: 20px; cursor: pointer; margin: 4px; display: inline-block;"><i class="fas fa-music"></i> Music</div>
+                    <div class="category-filter" onclick="filterByTag('reviews')" style="background: #607d8b; color: white; padding: 8px 16px; border-radius: 20px; cursor: pointer; margin: 4px; display: inline-block;"><i class="fas fa-star-half-alt"></i> Reviews</div>
                 </div>
             </div>
         </div>
@@ -225,12 +225,25 @@ async function getHomePage() {
         <div class="container mt-5">
             <div class="row">
                 <div class="col-md-8">
-                    <h3 class="section-title">Latest Articles</h3>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 class="section-title">Latest Articles</h3>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                Newest First
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="sortDropdown">
+                                <li><a class="dropdown-item" href="#" onclick="sortArticles('newest')">Newest First</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="sortArticles('oldest')">Oldest First</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="sortArticles('popular')">Most Popular</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="sortArticles('title')">Alphabetical</a></li>
+                            </ul>
+                        </div>
+                    </div>
                     ${getArticlesGrid()}
                 </div>
                 <div class="col-md-4">
-                    <h4 class="section-title">Announcements</h4>
-                    ${getAnnouncementsList()}
+                    <h4 class="section-title">Weekly News</h4>
+                    ${getWeeklyNewsList()}
                 </div>
             </div>
         </div>
@@ -345,36 +358,141 @@ function getArticlePreviewSection(article) {
 
 function getArticlesGrid() {
     if (!articles.length) {
-        return '<p class="text-muted">Nessun articolo disponibile al momento.</p>';
+        return '<p class="text-muted">No articles available at the moment.</p>';
     }
     
-    return articles.filter(a => a.published).map(article => `
-        <div class="article-card mb-3" onclick="continueReading('${article.id}')">
-            <div class="row">
-                <div class="col-md-3">
-                    <img src="${article.coverImage}" class="article-thumbnail" alt="${article.title}">
-                </div>
-                <div class="col-md-9">
-                    <div class="card-body ps-4">
-                        <h5 class="article-title">${article.title}</h5>
-                        <p class="article-excerpt">${article.description}</p>
-                        <small class="text-muted">
-                            <i class="fas fa-calendar"></i> ${formatDate(article.createdAt)}
-                            <i class="fas fa-comment ms-3"></i> ${getCommentsCount('article', article.id)} commenti
-                        </small>
+    const publishedArticles = articles.filter(a => a.published);
+    
+    return `
+        <div class="row">
+            ${publishedArticles.map(article => `
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="article-card h-100" onclick="openArticle('${article.id}')" style="cursor: pointer;">
+                        <div class="article-card-content" style="background: linear-gradient(135deg, #771510 0%, #cc4125 100%); border-radius: 12px; padding: 20px; color: white; height: 280px; position: relative;">
+                            <!-- Tag Badge -->
+                            <div class="article-tag-badge" style="position: absolute; top: 15px; left: 15px;">
+                                ${getTagBadge(article.tags?.[0] || 'general')}
+                            </div>
+                            
+                            <!-- Article Icon -->
+                            <div class="article-icon" style="text-align: center; margin: 40px 0 20px;">
+                                ${getArticleIcon(article.tags?.[0] || 'general')}
+                            </div>
+                            
+                            <!-- Content -->
+                            <div style="position: absolute; bottom: 20px; left: 20px; right: 20px;">
+                                <h5 style="color: white; font-weight: 600; margin-bottom: 8px; font-size: 1.1rem;">${article.title}</h5>
+                                <p style="color: rgba(255,255,255,0.9); font-size: 0.9rem; margin-bottom: 12px; line-height: 1.4;">${getArticleExcerpt(article.content, 80)}</p>
+                                
+                                <div class="article-meta" style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: rgba(255,255,255,0.8);">
+                                    <div>
+                                        <div>By ${article.author}</div>
+                                        <div>${formatDate(article.createdAt)}</div>
+                                    </div>
+                                    <div class="article-stats">
+                                        <i class="fas fa-eye"></i> ${article.views || 0}
+                                        <i class="fas fa-comment ms-2"></i> ${article.comments || 0}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
+            `).join('')}
         </div>
-    `).join('');
+    `;
 }
 
-function getAnnouncementsList() {
-    if (!announcements.length) {
+function getTagBadge(tag) {
+    const tagColors = {
+        'school-news': '#e74c3c',
+        'features': '#f39c12', 
+        'opinion': '#9b59b6',
+        'sports': '#3498db',
+        'creative': '#e91e63',
+        'humor': '#ff9800',
+        'tech': '#2196f3',
+        'lifestyle': '#4caf50',
+        'music': '#9c27b0',
+        'reviews': '#607d8b',
+        'general': '#95a5a6'
+    };
+    
+    const color = tagColors[tag] || tagColors.general;
+    const displayName = tag.replace('-', ' ').toUpperCase();
+    
+    return `<span style="background: ${color}; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 600;">${displayName}</span>`;
+}
+
+function getArticleIcon(tag) {
+    const icons = {
+        'school-news': '<i class="fas fa-graduation-cap" style="font-size: 2.5rem; color: white;"></i>',
+        'features': '<i class="fas fa-star" style="font-size: 2.5rem; color: white;"></i>',
+        'opinion': '<i class="fas fa-comment" style="font-size: 2.5rem; color: white;"></i>',
+        'sports': '<i class="fas fa-running" style="font-size: 2.5rem; color: white;"></i>',
+        'creative': '<i class="fas fa-palette" style="font-size: 2.5rem; color: white;"></i>',
+        'humor': '<i class="fas fa-laugh" style="font-size: 2.5rem; color: white;"></i>',
+        'tech': '<i class="fas fa-laptop" style="font-size: 2.5rem; color: white;"></i>',
+        'lifestyle': '<i class="fas fa-leaf" style="font-size: 2.5rem; color: white;"></i>',
+        'music': '<i class="fas fa-music" style="font-size: 2.5rem; color: white;"></i>',
+        'reviews': '<i class="fas fa-star-half-alt" style="font-size: 2.5rem; color: white;"></i>',
+        'general': '<i class="fas fa-newspaper" style="font-size: 2.5rem; color: white;"></i>'
+    };
+    
+    return icons[tag] || icons.general;
+}
+
+function getArticleExcerpt(content, maxLength = 100) {
+    if (!content) return '';
+    return content.length > maxLength ? content.substring(0, maxLength) + '...' : content;
+}
+
+function sortArticles(sortType) {
+    // Update dropdown text
+    const sortNames = {
+        'newest': 'Newest First',
+        'oldest': 'Oldest First', 
+        'popular': 'Most Popular',
+        'title': 'Alphabetical'
+    };
+    
+    document.getElementById('sortDropdown').textContent = sortNames[sortType];
+    
+    // Sort articles
+    let sortedArticles = [...articles];
+    
+    switch(sortType) {
+        case 'newest':
+            sortedArticles.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            break;
+        case 'oldest':
+            sortedArticles.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+            break;
+        case 'popular':
+            sortedArticles.sort((a, b) => (b.views || 0) - (a.views || 0));
+            break;
+        case 'title':
+            sortedArticles.sort((a, b) => a.title.localeCompare(b.title));
+            break;
+    }
+    
+    articles = sortedArticles;
+    
+    // Refresh the articles grid
+    const articlesContainer = document.querySelector('.col-md-8');
+    if (articlesContainer) {
+        const gridHtml = getArticlesGrid();
+        const gridContainer = articlesContainer.querySelector('.row') || articlesContainer;
+        gridContainer.innerHTML = gridHtml;
+    }
+}
+
+function getWeeklyNewsList() {
+    if (!weeklyNews.length) {
         return '<p class="text-muted">Nessun annuncio al momento.</p>';
     }
     
-    return announcements.map(announcement => `
+    return weeklyNews.map(announcement => `
         <div class="announcement ${announcement.priority === 'high' ? 'priority-high' : ''} position-relative">
             <div class="position-absolute top-0 end-0 p-2">
                 <button class="btn btn-sm btn-outline-secondary" onclick="incrementViews('announcement', '${announcement.id}')">
@@ -626,7 +744,7 @@ function getAdminPanel() {
                     <a class="nav-link" href="#articoli-tab" data-bs-toggle="tab">Manage Articles</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#annunci-tab" data-bs-toggle="tab">Manage Announcements</a>
+                    <a class="nav-link" href="#weekly-news-tab" data-bs-toggle="tab">Manage Weekly News</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="#messaggi-tab" data-bs-toggle="tab">Messages</a>
@@ -643,8 +761,8 @@ function getAdminPanel() {
                 <div class="tab-pane fade" id="articoli-tab">
                     ${getArticleManagement()}
                 </div>
-                <div class="tab-pane fade" id="annunci-tab">
-                    ${getAnnouncementManagement()}
+                <div class="tab-pane fade" id="weekly-news-tab">
+                    ${getWeeklyNewsManagement()}
                 </div>
                 <div class="tab-pane fade" id="messaggi-tab">
                     ${getMessageManagement()}
@@ -678,20 +796,9 @@ function getSubmitArticleForm() {
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="articleCategory" class="form-label">Category <span class="text-danger">*</span></label>
-                                            <select class="form-select" id="articleCategory" required>
-                                                <option value="">Select category</option>
-                                                <option value="School News">School News</option>
-                                                <option value="Features">Features</option>
-                                                <option value="Opinion">Opinion</option>
-                                                <option value="Sports">Sports</option>
-                                                <option value="Creative">Creative</option>
-                                                <option value="Humor">Humor</option>
-                                                <option value="Tech">Tech</option>
-                                                <option value="Lifestyle">Lifestyle</option>
-                                                <option value="Music">Music</option>
-                                                <option value="Reviews">Reviews</option>
-                                            </select>
+                                            <label for="articleTags" class="form-label">Tags <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="articleTags" placeholder="e.g., school-news, robotics, championship" required>
+                                            <small class="text-muted">Separate multiple tags with commas. Available: school-news, features, opinion, sports, creative, humor, tech, lifestyle, music, reviews</small>
                                         </div>
                                     </div>
                                 </div>
@@ -830,18 +937,18 @@ function getArticleManagement() {
     `;
 }
 
-function getAnnouncementManagement() {
+function getWeeklyNewsManagement() {
     return `
         <div class="admin-section">
             <h4>Gestione Annunci</h4>
-            <button class="btn btn-primary mb-3" onclick="showAddAnnouncementForm()">
+            <button class="btn btn-primary mb-3" onclick="showAddWeeklyNewsForm()">
                 <i class="fas fa-plus"></i> Nuovo Annuncio
             </button>
             
             <div id="addAnnouncementForm" style="display: none;" class="card mb-4">
                 <div class="card-body">
                     <h5>Nuovo Annuncio</h5>
-                    <form onsubmit="handleAddAnnouncement(event)">
+                    <form onsubmit="handleAddWeeklyNews(event)">
                         <div class="mb-3">
                             <label class="form-label">Titolo</label>
                             <input type="text" class="form-control" id="announcementTitle" required>
@@ -858,15 +965,15 @@ function getAnnouncementManagement() {
                             </select>
                         </div>
                         <div class="text-end">
-                            <button type="button" class="btn btn-secondary me-2" onclick="hideAddAnnouncementForm()">Annulla</button>
+                            <button type="button" class="btn btn-secondary me-2" onclick="hideAddWeeklyNewsForm()">Annulla</button>
                             <button type="submit" class="btn btn-primary">Salva Annuncio</button>
                         </div>
                     </form>
                 </div>
             </div>
             
-            <div class="announcements-list">
-                ${announcements.map(announcement => `
+            <div class="weeklyNews-list">
+                ${weeklyNews.map(announcement => `
                     <div class="admin-item ${announcement.priority === 'high' ? 'priority-high' : ''}">
                         <div class="row align-items-center">
                             <div class="col-md-8">
@@ -878,7 +985,7 @@ function getAnnouncementManagement() {
                                 </small>
                             </div>
                             <div class="col-md-4 text-end">
-                                <button class="btn btn-sm btn-outline-danger" onclick="deleteAnnouncement('${announcement.id}')">
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteWeeklyNews('${announcement.id}')">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
@@ -1227,15 +1334,15 @@ async function handleDeleteComment(commentId) {
     }
 }
 
-function showAddAnnouncementForm() {
+function showAddWeeklyNewsForm() {
     document.getElementById('addAnnouncementForm').style.display = 'block';
 }
 
-function hideAddAnnouncementForm() {
+function hideAddWeeklyNewsForm() {
     document.getElementById('addAnnouncementForm').style.display = 'none';
 }
 
-async function handleAddAnnouncement(event) {
+async function handleAddWeeklyNews(event) {
     event.preventDefault();
     
     const title = document.getElementById('announcementTitle').value;
@@ -1255,10 +1362,10 @@ async function handleAddAnnouncement(event) {
     }
 }
 
-async function deleteAnnouncement(id) {
+async function deleteWeeklyNews(id) {
     if (confirm('Sei sicuro di voler eliminare questo annuncio?')) {
         try {
-            await deleteAnnouncementFromDB(id);
+            await deleteWeeklyNewsFromDB(id);
             alert('Annuncio eliminato con successo!');
             await loadAllData();
             showPage('admin');
@@ -1405,13 +1512,216 @@ window.handleAddArticle = handleAddArticle;
 window.handlePublishArticle = handlePublishArticle;
 window.handleUnpublishArticle = handleUnpublishArticle;
 window.handleDeleteArticle = handleDeleteArticle;
-window.showAddAnnouncementForm = showAddAnnouncementForm;
-window.hideAddAnnouncementForm = hideAddAnnouncementForm;
-window.handleAddAnnouncement = handleAddAnnouncement;
+window.showAddWeeklyNewsForm = showAddWeeklyNewsForm;
+window.hideAddWeeklyNewsForm = hideAddWeeklyNewsForm;
+window.handleAddWeeklyNews = handleAddWeeklyNews;
 window.showComments = showComments;
 window.handleAddComment = handleAddComment;
 window.handleDeleteComment = handleDeleteComment;
 window.loadAllCommentsForModeration = loadAllCommentsForModeration;
 window.filterArticles = filterArticles;
 window.loadAllCounts = loadAllCounts;
-window.deleteAnnouncement = deleteAnnouncement;
+window.openArticle = openArticle;
+window.sortArticles = sortArticles;
+window.filterByTag = filterByTag;
+window.deleteWeeklyNews = deleteWeeklyNews;
+
+// Open article in modal
+async function openArticle(articleId) {
+    const article = articles.find(a => a.id === articleId);
+    if (!article) return;
+    
+    // Increment view count
+    await incrementViews('article', articleId);
+    article.views = (article.views || 0) + 1;
+    
+    // Create modal HTML
+    const modalHtml = `
+        <div class="modal fade" id="articleModal" tabindex="-1" aria-labelledby="articleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header border-0">
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body px-4">
+                        <div class="mb-3">
+                            ${getTagBadge(article.tags?.[0] || 'general')}
+                        </div>
+                        
+                        <h2 class="article-modal-title mb-3" style="color: #771510; font-weight: 700; line-height: 1.3;">${article.title}</h2>
+                        
+                        <div class="article-meta mb-4" style="color: #666; font-size: 0.9rem;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span>By ${article.author}</span> • 
+                                    <span>Published ${formatDate(article.createdAt)}</span>
+                                </div>
+                                <div>
+                                    <i class="fas fa-eye"></i> ${article.views || 0} views
+                                    <i class="fas fa-comment ms-3"></i> ${article.comments || 0} comments
+                                </div>
+                            </div>
+                        </div>
+                        
+                        ${article.photos && article.photos.length > 0 ? getArticleImagesGallery(article.photos) : ''}
+                        
+                        <div class="article-content" style="line-height: 1.8; font-size: 1.1rem; color: #333;">
+                            ${formatArticleContent(article.content)}
+                        </div>
+                        
+                        <hr class="my-5">
+                        
+                        <div class="comments-section">
+                            <h5 class="mb-4">Comments (${article.comments || 0})</h5>
+                            
+                            <div class="add-comment-form bg-light p-4 rounded mb-4">
+                                <h6>Add a Comment</h6>
+                                <form onsubmit="handleAddArticleComment(event, '${articleId}')">
+                                    <div class="mb-3">
+                                        <input type="text" class="form-control" id="commentAuthor" placeholder="Your name" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <textarea class="form-control" id="commentContent" rows="4" placeholder="Write your comment..." required></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-danger">Submit Comment</button>
+                                </form>
+                                <small class="text-muted mt-2">Comments are reviewed by editors before being published.</small>
+                            </div>
+                            
+                            <div id="article-comments-${articleId}">
+                                ${getArticleComments(articleId)}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remove existing modal
+    const existingModal = document.getElementById('articleModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Add modal to page
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('articleModal'));
+    modal.show();
+}
+
+function getArticleImagesGallery(photos) {
+    if (!photos || photos.length === 0) return '';
+    
+    return `
+        <div class="article-images-gallery mb-4">
+            <div class="row">
+                ${photos.map((photo, index) => `
+                    <div class="col-md-6 mb-3">
+                        <div class="image-container" style="position: relative; cursor: pointer;" onclick="openImageModal('${photo.id}')">
+                            <img src="${getImageDataUrl(photo.id)}" alt="${photo.name}" class="img-fluid rounded" style="width: 100%; height: 200px; object-fit: cover;">
+                            <div class="image-label" style="position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">
+                                <i class="fas fa-image"></i> ${photo.name}
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
+function getImageDataUrl(imageId) {
+    const imageData = getImageFromStorage(imageId);
+    return imageData ? imageData.data : '/placeholder-image.jpg';
+}
+
+function formatArticleContent(content) {
+    // Simple paragraph formatting
+    return content.split('\n').map(paragraph => 
+        paragraph.trim() ? `<p>${paragraph.trim()}</p>` : ''
+    ).join('');
+}
+
+function getArticleComments(articleId) {
+    // For now return placeholder - will be implemented with comment system
+    return '<p class="text-muted">No comments yet. Be the first to comment!</p>';
+}
+
+function handleAddArticleComment(event, articleId) {
+    event.preventDefault();
+    alert('Comment submitted for review. Thank you!');
+    // Reset form
+    event.target.reset();
+}
+
+// Filter articles by tag
+function filterByTag(tag) {
+    // Update active filter styling
+    document.querySelectorAll('.category-filter').forEach(filter => {
+        filter.style.opacity = '0.7';
+    });
+    
+    if (tag === 'all') {
+        document.querySelector('.category-filter.all-articles').style.opacity = '1';
+        // Show all articles
+        showPage('home');
+    } else {
+        document.querySelector(`[onclick="filterByTag('${tag}')"]`).style.opacity = '1';
+        
+        // Filter and redisplay articles
+        const filteredArticles = articles.filter(article => 
+            article.published && article.tags && article.tags.includes(tag)
+        );
+        
+        // Update the articles grid with filtered results
+        const articlesContainer = document.querySelector('.col-md-8 .row');
+        if (articlesContainer) {
+            const gridHtml = getFilteredArticlesGrid(filteredArticles);
+            articlesContainer.innerHTML = gridHtml;
+        }
+    }
+}
+
+function getFilteredArticlesGrid(filteredArticles) {
+    if (!filteredArticles.length) {
+        return '<div class="col-12"><p class="text-muted text-center">No articles found for this tag.</p></div>';
+    }
+    
+    return filteredArticles.map(article => `
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="article-card h-100" onclick="openArticle('${article.id}')" style="cursor: pointer;">
+                <div class="article-card-content" style="background: linear-gradient(135deg, #771510 0%, #cc4125 100%); border-radius: 12px; padding: 20px; color: white; height: 280px; position: relative;">
+                    <!-- Tag Badge -->
+                    <div class="article-tag-badge" style="position: absolute; top: 15px; left: 15px;">
+                        ${getTagBadge(article.tags?.[0] || 'general')}
+                    </div>
+                    
+                    <!-- Article Icon -->
+                    <div class="article-icon" style="text-align: center; margin: 40px 0 20px;">
+                        ${getArticleIcon(article.tags?.[0] || 'general')}
+                    </div>
+                    
+                    <!-- Content -->
+                    <div style="position: absolute; bottom: 20px; left: 20px; right: 20px;">
+                        <h5 style="color: white; font-weight: 600; margin-bottom: 8px; font-size: 1.1rem;">${article.title}</h5>
+                        <p style="color: rgba(255,255,255,0.9); font-size: 0.9rem; margin-bottom: 12px; line-height: 1.4;">${getArticleExcerpt(article.content, 80)}</p>
+                        
+                        <div class="article-meta" style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: rgba(255,255,255,0.8);">
+                            <div>
+                                <div>By ${article.author}</div>
+                                <div>${formatDate(article.createdAt)}</div>
+                            </div>
+                            <div class="article-stats">
+                                <i class="fas fa-eye"></i> ${article.views || 0}
+                                <i class="fas fa-comment ms-2"></i> ${article.comments || 0}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}

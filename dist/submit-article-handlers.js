@@ -5,13 +5,12 @@ async function handleSubmitNewArticle(event) {
     event.preventDefault();
     
     const title = document.getElementById('newArticleTitle').value.trim();
-    const category = document.getElementById('articleCategory').value;
+    const tags = document.getElementById('articleTags').value.trim();
     const content = document.getElementById('articleContent').value.trim();
     const author = document.getElementById('authorName').value.trim();
-    const tags = document.getElementById('articleTags').value.trim();
     const photosInput = document.getElementById('articlePhotos');
     
-    if (!title || !category || !content || !author) {
+    if (!title || !tags || !content || !author) {
         alert('Please fill in all required fields.');
         return;
     }
@@ -58,17 +57,18 @@ async function handleSubmitNewArticle(event) {
         // Process tags
         const tagArray = tags ? tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : [];
         
-        // Create article object
+        // Create article object  
         const articleData = {
             title: title,
-            category: category,
+            tags: tagArray,
             content: content,
             author: author,
-            tags: tagArray,
             photos: photos,
             published: true,
             createdAt: Date.now(),
-            type: 'text_article' // Distinguish from PDF articles
+            type: 'text_article', // Distinguish from PDF articles
+            views: 0,
+            comments: 0
         };
         
         // Save to local database
@@ -104,7 +104,7 @@ async function handleSubmitNewArticle(event) {
         // Reset button state
         const submitBtn = document.querySelector('#submitArticleForm button[type="submit"]');
         if (submitBtn) {
-            submitBtn.innerHTML = originalText;
+            submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Post Article Directly';
             submitBtn.disabled = false;
         }
     }
