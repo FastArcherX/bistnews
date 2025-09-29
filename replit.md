@@ -57,7 +57,16 @@ src/                   # Codice sorgente
 - ❌ **Risolto:** Conflitti TypeScript - usato JavaScript puro
 - ✅ **Risultato:** App stabile e performante
 
-## Modifiche Recenti (28/09/2024) - VERSIONE FINALE
+## Recent Changes (29/09/2024) - COMPLETE ENGLISH REDESIGN
+- ✅ **COMPLETE REBRAND** - Transformed from "BISTnews" to "The Student Voice"
+- ✅ **ENGLISH INTERFACE** - All text content converted from Italian to English
+- ✅ **NEW DESIGN SYSTEM** - Professional news website design matching reference
+- ✅ **TRENDING NOW SECTION** - Modern card-based layout with category filters
+- ✅ **UPDATED COLOR SCHEME** - Blue/cream theme replacing red/gold
+- ✅ **ENHANCED NAVIGATION** - Complete menu redesign with Writer/Editor Portal
+- ✅ **ADMIN SYSTEM MAINTAINED** - All functionality preserved with English translations
+
+## Previous Changes (28/09/2024) - TECHNICAL FOUNDATION
 - ✅ **SISTEMA ARTICOLI PDF LOCALE** - Gestione articoli da cartella `magazine/` locale
 - ✅ **PREVIEW INGRANDITA HOMEPAGE** - Prima pagina 600px per leggibilità ottimale
 - ✅ **VISUALIZZATORE PDF LIBRO** - Navigazione destra/sinistra con thumbnails
