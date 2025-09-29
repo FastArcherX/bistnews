@@ -74,6 +74,10 @@ replit.md                         # Documentazione progetto
 - ✅ **SEARCH BAR ADDED** - Real-time article search by title and content next to tag filters
 - ✅ **LAYOUT IMPROVEMENTS** - Fixed spacing between tag filters and Latest Articles section with responsive design
 - ✅ **COMMENT SYSTEM FIXED** - Fully converted loadAllCommentsForModeration and saveComment from Firebase to localStorage, all errors resolved
+- ✅ **WEEKLY NEWS PAGE REDESIGN** - Created dedicated modern Weekly News page with card-based layout
+- ✅ **WEEKLY NEWS SIDEBAR IMPROVED** - Updated homepage sidebar with modern card design and badges
+- ✅ **NAVIGATION FIXED** - Weekly News menu now correctly points to dedicated page instead of articles
+- ✅ **MODERN STYLING** - Added hover effects, gradient backgrounds, and improved readability for announcements
 
 ## Previous Changes (29/09/2024) - COMPLETE SYSTEM TRANSFORMATION
 - ✅ **FIREBASE TO LOCALSTORAGE MIGRATION** - Complete replacement of Firebase with localStorage system for cost savings

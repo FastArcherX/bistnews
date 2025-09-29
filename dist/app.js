@@ -98,6 +98,9 @@ async function showPage(page) {
         case 'articoli':
             content.innerHTML = getArticoliPage();
             break;
+        case 'weekly-news':
+            content.innerHTML = await getWeeklyNewsPage();
+            break;
         case 'contatti':
             content.innerHTML = getContattiPage();
             break;
@@ -450,27 +453,31 @@ function sortArticles(sortType) {
 
 function getWeeklyNewsList() {
     if (!weeklyNews.length) {
-        return '<p class="text-muted">Nessun annuncio al momento.</p>';
+        return '<p class="text-muted">No weekly news at the moment.</p>';
     }
     
     return weeklyNews.map(announcement => `
-        <div class="announcement ${announcement.priority === 'high' ? 'priority-high' : ''} position-relative">
-            <div class="position-absolute top-0 end-0 p-2">
-                <button class="btn btn-sm btn-outline-secondary" onclick="incrementViews('announcement', '${announcement.id}')">
-                    <i class="fas fa-eye"></i> <span id="views-count-${announcement.id}">0</span>
-                </button>
+        <div class="announcement-card mb-3">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="badge bg-primary">
+                    <i class="fas fa-bullhorn me-1"></i>Weekly News
+                </span>
+                ${announcement.priority === 'high' ? '<span class="badge bg-danger">Important</span>' : ''}
             </div>
-            <div class="position-absolute bottom-0 end-0 p-2">
-                <button class="btn btn-sm btn-outline-primary" onclick="showComments('announcement', '${announcement.id}')">
-                    <i class="fas fa-comment me-1"></i><span id="comments-count-${announcement.id}">0</span>
-                </button>
-            </div>
-            <div class="pe-5">
-                <h6>${announcement.title}</h6>
-                <p>${announcement.content}</p>
+            <h6 class="fw-bold">${announcement.title}</h6>
+            <p class="mb-2">${announcement.content}</p>
+            <div class="d-flex justify-content-between align-items-center">
                 <small class="text-muted">
                     <i class="fas fa-calendar"></i> ${formatDate(announcement.createdAt)}
                 </small>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-secondary" onclick="incrementViews('announcement', '${announcement.id}')">
+                        <i class="fas fa-eye"></i> <span id="views-count-${announcement.id}">0</span>
+                    </button>
+                    <button class="btn btn-outline-primary" onclick="showComments('announcement', '${announcement.id}')">
+                        <i class="fas fa-comment"></i> <span id="comments-count-${announcement.id}">0</span>
+                    </button>
+                </div>
             </div>
         </div>
     `).join('');
@@ -514,6 +521,60 @@ function getArticoliPage() {
                     </div>
                 `).join('')}
             </div>
+        </div>
+    `;
+}
+
+// Weekly News Page
+async function getWeeklyNewsPage() {
+    return `
+        <div class="container mt-4">
+            <div class="text-center mb-5">
+                <h2 class="page-title">
+                    <i class="fas fa-bullhorn text-primary me-2"></i>Weekly News
+                </h2>
+                <p class="text-muted">Stay updated with the latest announcements and school news</p>
+            </div>
+            
+            ${weeklyNews.length === 0 ? `
+                <div class="text-center py-5">
+                    <i class="fas fa-newspaper fa-4x text-muted mb-3"></i>
+                    <p class="text-muted fs-5">No weekly news available yet.</p>
+                    <p class="text-muted">Check back soon for the latest updates!</p>
+                </div>
+            ` : `
+                <div class="row justify-content-center">
+                    ${weeklyNews.map(announcement => `
+                        <div class="col-md-8 mb-4">
+                            <div class="weekly-news-card ${announcement.priority === 'high' ? 'priority-high' : ''}">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div>
+                                        <span class="badge bg-primary me-2">
+                                            <i class="fas fa-bullhorn me-1"></i>Weekly News
+                                        </span>
+                                        ${announcement.priority === 'high' ? '<span class="badge bg-danger"><i class="fas fa-exclamation-circle me-1"></i>Important</span>' : ''}
+                                    </div>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-secondary" onclick="incrementViews('announcement', '${announcement.id}')">
+                                            <i class="fas fa-eye"></i> <span id="views-count-${announcement.id}">0</span>
+                                        </button>
+                                        <button class="btn btn-outline-primary" onclick="showComments('announcement', '${announcement.id}')">
+                                            <i class="fas fa-comment"></i> <span id="comments-count-${announcement.id}">0</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <h4 class="fw-bold mb-3">${announcement.title}</h4>
+                                <p class="announcement-content mb-3">${announcement.content}</p>
+                                <div class="d-flex justify-content-between align-items-center border-top pt-3">
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar me-1"></i>${formatDate(announcement.createdAt)}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `}
         </div>
     `;
 }
