@@ -151,7 +151,23 @@ async function getHomePage() {
                 
                 ${trendingCardHtml}
                 
-                <div class="category-filters">
+                <!-- Search Bar -->
+                <div class="search-bar-container" style="margin: 30px auto 20px; max-width: 600px;">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0">
+                            <i class="fas fa-search text-muted"></i>
+                        </span>
+                        <input type="text" 
+                               id="articleSearchInput" 
+                               class="form-control border-start-0" 
+                               placeholder="Search articles by title or content..." 
+                               onkeyup="searchArticles()"
+                               style="border-left: none; box-shadow: none;">
+                    </div>
+                </div>
+                
+                <!-- Category Filters -->
+                <div class="category-filters" style="margin-bottom: 40px;">
                     <div class="category-filter all-articles" onclick="filterByTag('all')" style="background: #771510; color: white; padding: 8px 16px; border-radius: 20px; cursor: pointer; margin: 4px; display: inline-block;">All Articles</div>
                     <div class="category-filter" onclick="filterByTag('school-news')" style="background: #e74c3c; color: white; padding: 8px 16px; border-radius: 20px; cursor: pointer; margin: 4px; display: inline-block;"><i class="fas fa-graduation-cap"></i> School News</div>
                     <div class="category-filter" onclick="filterByTag('features')" style="background: #f39c12; color: white; padding: 8px 16px; border-radius: 20px; cursor: pointer; margin: 4px; display: inline-block;"><i class="fas fa-star"></i> Features</div>
@@ -311,9 +327,9 @@ function getArticlesGrid() {
     return `
         <div class="row">
             ${publishedArticles.map(article => `
-                <div class="col-md-6 col-lg-4 mb-4">
+                <div class="col-md-6 col-xl-4 mb-4 article-item" data-title="${article.title.toLowerCase()}" data-content="${article.content.toLowerCase()}">
                     <div class="article-card h-100" onclick="openArticle('${article.id}')" style="cursor: pointer;">
-                        <div class="article-card-content" style="background: linear-gradient(135deg, #771510 0%, #cc4125 100%); border-radius: 12px; padding: 20px; color: white; height: 280px; position: relative;">
+                        <div class="article-card-content" style="background: linear-gradient(135deg, #771510 0%, #cc4125 100%); border-radius: 12px; padding: 20px; color: white; min-height: 280px; position: relative; display: flex; flex-direction: column; justify-content: space-between;">
                             <!-- Tag Badge -->
                             <div class="article-tag-badge" style="position: absolute; top: 15px; left: 15px;">
                                 ${getTagBadge(article.tags?.[0] || 'general')}
@@ -1615,9 +1631,9 @@ function getFilteredArticlesGrid(filteredArticles) {
     }
     
     return filteredArticles.map(article => `
-        <div class="col-md-6 col-lg-4 mb-4">
+        <div class="col-md-6 col-xl-4 mb-4">
             <div class="article-card h-100" onclick="openArticle('${article.id}')" style="cursor: pointer;">
-                <div class="article-card-content" style="background: linear-gradient(135deg, #771510 0%, #cc4125 100%); border-radius: 12px; padding: 20px; color: white; height: 280px; position: relative;">
+                <div class="article-card-content" style="background: linear-gradient(135deg, #771510 0%, #cc4125 100%); border-radius: 12px; padding: 20px; color: white; min-height: 280px; position: relative; display: flex; flex-direction: column; justify-content: space-between;">
                     <!-- Tag Badge -->
                     <div class="article-tag-badge" style="position: absolute; top: 15px; left: 15px;">
                         ${getTagBadge(article.tags?.[0] || 'general')}
@@ -1649,3 +1665,43 @@ function getFilteredArticlesGrid(filteredArticles) {
         </div>
     `).join('');
 }
+
+// Search articles by keyword
+function searchArticles() {
+    const searchInput = document.getElementById('articleSearchInput');
+    if (!searchInput) return;
+    
+    const searchTerm = searchInput.value.toLowerCase().trim();
+    
+    // Reset filters when searching
+    document.querySelectorAll('.category-filter').forEach(filter => {
+        filter.style.opacity = '0.7';
+    });
+    
+    if (searchTerm === '') {
+        // If search is empty, show all articles
+        showPage('home');
+        return;
+    }
+    
+    // Filter articles by search term
+    const filteredArticles = articles.filter(article => 
+        article.published && (
+            article.title.toLowerCase().includes(searchTerm) ||
+            article.content.toLowerCase().includes(searchTerm) ||
+            article.author.toLowerCase().includes(searchTerm)
+        )
+    );
+    
+    // Update the articles grid with filtered results
+    const articlesContainer = document.querySelector('.col-md-8 .row');
+    if (articlesContainer) {
+        if (filteredArticles.length === 0) {
+            articlesContainer.innerHTML = '<div class="col-12"><p class="text-muted text-center">No articles found matching "' + searchTerm + '"</p></div>';
+        } else {
+            articlesContainer.innerHTML = getFilteredArticlesGrid(filteredArticles);
+        }
+    }
+}
+
+window.searchArticles = searchArticles;
