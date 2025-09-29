@@ -798,86 +798,63 @@ function getSubmitArticleForm() {
 }
 
 function getArticleManagement() {
+    if (articles.length === 0) {
+        return `
+            <div class="admin-section">
+                <h4>Manage Articles</h4>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> 
+                    No articles have been created yet. Use the "Submit New Article" tab to create your first article.
+                </div>
+            </div>
+        `;
+    }
+    
     return `
         <div class="admin-section">
-            <h4>Gestione Articoli PDF</h4>
-            <div class="alert alert-info">
+            <h4>Manage Articles</h4>
+            <div class="alert alert-info mb-3">
                 <i class="fas fa-info-circle"></i> 
-                <strong>Nota:</strong> I file PDF devono essere caricati manualmente nella cartella <code>magazine/[nome-articolo]/</code> del sito.
-                Qui puoi solo gestire la pubblicazione e la visibilità degli articoli.
-            </div>
-            
-            <button class="btn btn-primary mb-3" onclick="showAddArticleForm()">
-                <i class="fas fa-plus"></i> Aggiungi Nuovo Articolo
-            </button>
-            
-            <div id="addArticleForm" style="display: none;" class="card mb-4">
-                <div class="card-body">
-                    <h5>Nuovo Articolo</h5>
-                    <form onsubmit="handleAddArticle(event)">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Titolo Articolo</label>
-                                    <input type="text" class="form-control" id="articleTitle" required>
-                                    <small class="text-muted">Deve corrispondere al nome della cartella in magazine/</small>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Descrizione</label>
-                                    <textarea class="form-control" id="articleDescription" rows="3" required></textarea>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Numero di Pagine</label>
-                                    <input type="number" class="form-control" id="articlePages" min="1" value="1" required>
-                                    <small class="text-muted">Quante pagine ha questo articolo</small>
-                                </div>
-                                <div class="mb-3">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="publishNow">
-                                        <label class="form-check-label" for="publishNow">Pubblica subito</label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="text-end">
-                            <button type="button" class="btn btn-secondary me-2" onclick="hideAddArticleForm()">Annulla</button>
-                            <button type="submit" class="btn btn-primary">Salva Articolo</button>
-                        </div>
-                    </form>
-                </div>
+                Manage all published and draft articles. You can edit, publish/unpublish, or delete articles here.
             </div>
             
             <div class="articles-list">
                 ${articles.map(article => `
-                    <div class="admin-item">
-                        <div class="row align-items-center">
-                            <div class="col-md-2">
-                                <img src="${article.coverImage}" class="admin-thumbnail" alt="${article.title}" onerror="this.src='https://via.placeholder.com/80x60?text=PDF'">
-                            </div>
-                            <div class="col-md-6">
-                                <h6>${article.title}</h6>
-                                <p class="text-muted">${article.description}</p>
-                                <small class="text-muted">
-                                    ${formatDate(article.createdAt)} • 
-                                    ${article.pages?.length || 1} pagine • 
-                                    <span class="badge ${article.published ? 'bg-success' : 'bg-warning'}">${article.published ? 'Pubblicato' : 'Bozza'}</span>
-                                </small>
-                            </div>
-                            <div class="col-md-4 text-end">
-                                ${article.published ? `
-                                    <button class="btn btn-sm btn-warning me-2" onclick="handleUnpublishArticle('${article.id}')">
-                                        <i class="fas fa-eye-slash"></i> Ritira
-                                    </button>
-                                ` : `
-                                    <button class="btn btn-sm btn-success me-2" onclick="handlePublishArticle('${article.id}')">
-                                        <i class="fas fa-paper-plane"></i> Pubblica
-                                    </button>
-                                `}
-                                <button class="btn btn-sm btn-outline-danger" onclick="handleDeleteArticle('${article.id}')">
-                                    <i class="fas fa-trash"></i>
-                                </button>
+                    <div class="admin-item mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <div class="col-md-8">
+                                        <div class="mb-2">
+                                            ${getTagBadge(article.tags?.[0] || 'general')}
+                                        </div>
+                                        <h6 class="mb-2">${article.title}</h6>
+                                        <p class="text-muted mb-2">${getArticleExcerpt(article.content, 120)}</p>
+                                        <small class="text-muted">
+                                            <i class="fas fa-user"></i> ${article.author} • 
+                                            <i class="fas fa-calendar"></i> ${formatDate(article.createdAt)} • 
+                                            ${article.photos?.length || 0} photos • 
+                                            <span class="badge ${article.published ? 'bg-success' : 'bg-warning'}">${article.published ? 'Published' : 'Draft'}</span>
+                                        </small>
+                                    </div>
+                                    <div class="col-md-4 text-end">
+                                        <button class="btn btn-sm btn-outline-primary me-2" onclick="openArticle('${article.id}')">
+                                            <i class="fas fa-eye"></i> View
+                                        </button>
+                                        ${article.published ? `
+                                            <button class="btn btn-sm btn-warning me-2" onclick="handleUnpublishArticle('${article.id}')">
+                                                <i class="fas fa-eye-slash"></i> Unpublish
+                                            </button>
+                                        ` : `
+                                            <button class="btn btn-sm btn-success me-2" onclick="handlePublishArticle('${article.id}')">
+                                                <i class="fas fa-paper-plane"></i> Publish
+                                            </button>
+                                        `}
+                                        <button class="btn btn-sm btn-outline-danger" onclick="handleDeleteArticle('${article.id}')">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
