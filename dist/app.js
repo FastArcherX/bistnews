@@ -570,7 +570,10 @@ function getAdminPanel() {
         <div class="admin-tabs">
             <ul class="nav nav-tabs" id="adminTabs">
                 <li class="nav-item">
-                    <a class="nav-link active" href="#articoli-tab" data-bs-toggle="tab">Manage Articles</a>
+                    <a class="nav-link active" href="#submit-article-tab" data-bs-toggle="tab">Submit New Article</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#articoli-tab" data-bs-toggle="tab">Manage Articles</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="#annunci-tab" data-bs-toggle="tab">Manage Announcements</a>
@@ -579,12 +582,15 @@ function getAdminPanel() {
                     <a class="nav-link" href="#messaggi-tab" data-bs-toggle="tab">Messages</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#commenti-tab" data-bs-toggle="tab">Moderazione Commenti</a>
+                    <a class="nav-link" href="#commenti-tab" data-bs-toggle="tab">Comment Moderation</a>
                 </li>
             </ul>
             
             <div class="tab-content mt-4">
-                <div class="tab-pane fade show active" id="articoli-tab">
+                <div class="tab-pane fade show active" id="submit-article-tab">
+                    ${getSubmitArticleForm()}
+                </div>
+                <div class="tab-pane fade" id="articoli-tab">
                     ${getArticleManagement()}
                 </div>
                 <div class="tab-pane fade" id="annunci-tab">
@@ -595,6 +601,89 @@ function getAdminPanel() {
                 </div>
                 <div class="tab-pane fade" id="commenti-tab">
                     ${getCommentModeration()}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function getSubmitArticleForm() {
+    return `
+        <div class="admin-section">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="card shadow-sm">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h4 class="mb-0">Submit New Article</h4>
+                            <button type="button" class="btn-close" onclick="closeSubmitForm()" aria-label="Close"></button>
+                        </div>
+                        <div class="card-body p-4">
+                            <form onsubmit="handleSubmitNewArticle(event)" id="submitArticleForm">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="newArticleTitle" class="form-label">Article Title <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="newArticleTitle" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="articleCategory" class="form-label">Category <span class="text-danger">*</span></label>
+                                            <select class="form-select" id="articleCategory" required>
+                                                <option value="">Select category</option>
+                                                <option value="School News">School News</option>
+                                                <option value="Features">Features</option>
+                                                <option value="Opinion">Opinion</option>
+                                                <option value="Sports">Sports</option>
+                                                <option value="Creative">Creative</option>
+                                                <option value="Humor">Humor</option>
+                                                <option value="Tech">Tech</option>
+                                                <option value="Lifestyle">Lifestyle</option>
+                                                <option value="Music">Music</option>
+                                                <option value="Reviews">Reviews</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="articleContent" class="form-label">Article Content <span class="text-danger">*</span></label>
+                                    <textarea class="form-control" id="articleContent" rows="12" placeholder="Write your article here..." required></textarea>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="authorName" class="form-label">Author Name <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="authorName" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="articleTags" class="form-label">Tags (Optional)</label>
+                                            <input type="text" class="form-control" id="articleTags" placeholder="e.g., robotics, championship, innovation">
+                                            <small class="text-muted">Separate tags with commas</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label for="articlePhotos" class="form-label">Upload Photos (Optional)</label>
+                                    <input type="file" class="form-control" id="articlePhotos" multiple accept="image/*">
+                                    <small class="text-muted">You can upload multiple photos for your article</small>
+                                </div>
+                                
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="clearSubmitForm()">
+                                        Clear Form
+                                    </button>
+                                    <button type="submit" class="btn btn-danger">
+                                        <i class="fas fa-paper-plane"></i> Post Article Directly
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
