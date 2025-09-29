@@ -1,4 +1,4 @@
-// BISTnews Application - Redesigned with Firebase Realtime Database
+// The Student Voice Application - Redesigned with Firebase Realtime Database
 let currentPage = 'home';
 let articles = [];
 let announcements = [];
@@ -167,39 +167,68 @@ function showPage(page) {
 
 // Homepage with open article preview
 function getHomePage() {
-    const latestArticle = articles.find(a => a.published) || articles[0];
+    const trendingArticle = articles.find(a => a.published) || articles[0];
     
     return `
-        <div class="hero-section">
+        <div class="trending-section">
             <div class="container">
-                <div class="row">
-                    <div class="col-12 text-center">
-                        <h1 class="display-1 hero-title">BISTnews</h1>
-                        <p class="lead hero-subtitle">Il giornale digitale della nostra scuola</p>
-                        <div class="hero-buttons">
-                            <button class="btn btn-primary btn-lg me-3" onclick="showPage('articoli')">
-                                <i class="fas fa-newspaper"></i> Ultimi Giornalini
-                            </button>
-                            <button class="btn btn-outline-primary btn-lg" onclick="showPage('articoli')">
-                                <i class="fas fa-edit"></i> Leggi Articoli
-                            </button>
-                        </div>
+                <div class="trending-header">
+                    <i class="fas fa-chart-line trending-icon"></i>
+                    <div>
+                        <h2 class="trending-title">Trending Now</h2>
+                        <p class="trending-subtitle">Most read article this week</p>
                     </div>
+                </div>
+                
+                ${trendingArticle ? getTrendingCard(trendingArticle) : ''}
+                
+                <div class="category-filters">
+                    <div class="category-filter all-articles">All Articles</div>
+                    <div class="category-filter"><i class="fas fa-graduation-cap"></i> School News</div>
+                    <div class="category-filter"><i class="fas fa-star"></i> Features</div>
+                    <div class="category-filter"><i class="fas fa-comment"></i> Opinion</div>
+                    <div class="category-filter"><i class="fas fa-futbol"></i> Sports</div>
+                    <div class="category-filter"><i class="fas fa-palette"></i> Creative</div>
+                    <div class="category-filter"><i class="fas fa-laugh"></i> Humor</div>
+                    <div class="category-filter"><i class="fas fa-laptop"></i> Tech</div>
+                    <div class="category-filter"><i class="fas fa-leaf"></i> Lifestyle</div>
+                    <div class="category-filter"><i class="fas fa-music"></i> Music</div>
+                    <div class="category-filter"><i class="fas fa-star"></i> Reviews</div>
                 </div>
             </div>
         </div>
 
         <div class="container mt-5">
-            ${latestArticle ? getArticlePreviewSection(latestArticle) : ''}
-            
-            <div class="row mt-5">
+            <div class="row">
                 <div class="col-md-8">
-                    <h3 class="section-title">Ultimi Articoli</h3>
+                    <h3 class="section-title">Latest Articles</h3>
                     ${getArticlesGrid()}
                 </div>
                 <div class="col-md-4">
-                    <h4 class="section-title">Annunci</h4>
+                    <h4 class="section-title">Announcements</h4>
                     ${getAnnouncementsList()}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function getTrendingCard(article) {
+    return `
+        <div class="trending-card">
+            <span class="trending-badge">TRENDING</span>
+            <div class="category-badge">SCHOOL NEWS & EVENTS</div>
+            <h3 class="trending-card-title">${article.title}</h3>
+            <p class="trending-card-text">${article.description}</p>
+            <div class="trending-meta">
+                <div>
+                    <small style="color: #ccc;">By Alex Kim • ${formatDate(article.createdAt)}</small>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <span class="trending-views"><i class="fas fa-eye"></i> <span id="views-count-${article.id}">245</span> views</span>
+                    <button class="btn btn-light" onclick="continueReading('${article.id}')">
+                        Read Full Article
+                    </button>
                 </div>
             </div>
         </div>
@@ -212,11 +241,11 @@ function getArticlePreviewSection(article) {
             <div class="row align-items-center">
                 <div class="col-md-5">
                     <div class="preview-info">
-                        <span class="preview-badge">Ultimo Giornalino</span>
+                        <span class="preview-badge">Latest Magazine</span>
                         <h2 class="preview-title">${article.title}</h2>
                         <p class="preview-description">${article.description}</p>
                         <button class="btn btn-primary" onclick="continueReading('${article.id}')">
-                            <i class="fas fa-book-open"></i> Continua a Leggere
+                            <i class="fas fa-book-open"></i> Continue Reading
                         </button>
                     </div>
                 </div>
