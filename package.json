@@ -1,0 +1,22 @@
+{
+  "name": "bistnews",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "node build.js",
+    "start": "node server.js",
+    "frontend": "http-server dist -p 8080 -a 0.0.0.0 -c-1",
+    "setup": "npm install express socket.io multer cors fs-extra uuid concurrently && npm install -g http-server"
+  },
+  "dependencies": {
+    "bootstrap": "^5.3.8",
+    "concurrently": "^8.2.2",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "fs-extra": "^11.3.2",
+    "multer": "^2.0.2",
+    "socket.io": "^4.8.1",
+    "uuid": "^9.0.1"
+  }
+}
