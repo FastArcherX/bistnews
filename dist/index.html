@@ -7,6 +7,9 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Raleway:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Quill.js CSS -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%23771510'/%3E%3C/svg%3E" />
     <style>
         :root {
             --primary-color: #771510;
@@ -899,9 +902,7 @@
             border-left: 4px solid var(--quinary-color);
         }
         
-        .no-cache {
-            cache-control: no-cache;
-        }
+        /* Removed invalid CSS cache-control rule */
         
         @media (max-width: 768px) {
             .hero-title {
@@ -911,13 +912,85 @@
                 font-size: 1.5rem;
             }
         }
+        
+        /* Team Cards Styles */
+        .team-card {
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .team-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15) !important;
+        }
+        
+        .team-section {
+            margin-bottom: 60px;
+        }
+        
+        .team-title {
+            position: relative;
+        }
+        
+        .team-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background: linear-gradient(90deg, #ff6b6b, #4ecdc4);
+            border-radius: 2px;
+        }
+        
+        @media (max-width: 768px) {
+            .team-card {
+                margin-bottom: 20px;
+            }
+            
+            .team-title {
+                font-size: 2rem !important;
+            }
+            
+            .team-subtitle {
+                font-size: 1rem !important;
+            }
+        }
+        
+        /* No Image Placeholder Styles */
+        .no-image-placeholder {
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            min-height: 300px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 2px dashed #dee2e6;
+            border-radius: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .no-image-placeholder:hover {
+            border-color: var(--primary-color);
+            background: linear-gradient(135deg, #f1f3f4 0%, #e2e6ea 100%);
+        }
+        
+        .no-photo-placeholder {
+            transition: all 0.3s ease;
+        }
+        
+        .no-photo-placeholder:hover {
+            border-color: var(--primary-color) !important;
+            background: #f1f3f4 !important;
+        }
     </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg">
         <div class="container">
-            <a class="navbar-brand" href="#" onclick="showPage('home')">
-                <i class="fas fa-home"></i>
+            <a class="navbar-brand d-flex align-items-center" href="#" onclick="showPage('home')">
+                <i id="page-icon" class="fas fa-home" style="font-size: 2rem; margin-right: 15px; color: var(--secondary-color);"></i>
                 <div>
                     The Student Voice
                     <div class="navbar-school">British International School of Timisoara</div>
@@ -932,7 +1005,7 @@
                         <a class="nav-link" href="#" onclick="showPage('home')">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#" onclick="showPage('weekly-news')">Weekly News</a>
+                        <a class="nav-link" href="#" onclick="showPage('weekly-news')">Articles</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#" onclick="showPage('giornalini')">Photo Gallery</a>
@@ -957,21 +1030,13 @@
 
     <footer class="footer text-center py-4 mt-5">
         <div class="container">
-            <p>&copy; 2024 The Student Voice - All rights reserved</p>
+            <p>&copy; 2025 The Student Voice - All rights reserved by fastarcherx</p>
         </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Load Admin Configuration -->
-    <script src="admin-config.js"></script>
-    
-    <!-- Load Local Database System -->
-    <script src="local-database.js"></script>
-    
-    <!-- Load Submit Article Handlers -->
-    <script src="submit-article-handlers.js"></script>
-    
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script src="enhanced-database.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
