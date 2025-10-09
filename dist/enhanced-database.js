@@ -388,9 +388,10 @@ class EnhancedDatabase {
     async saveComment(itemType, itemId, commentData) {
         if (this.isOnline) {
             try {
+                const sessionToken = (window.getSessionToken && window.getSessionToken()) || null;
                 const response = await fetch(`${this.apiBaseUrl}/comments`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', ...(sessionToken? { 'x-session-token': sessionToken } : {}) },
                     body: JSON.stringify({
                         itemType,
                         itemId,

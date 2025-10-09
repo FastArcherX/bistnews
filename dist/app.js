@@ -11,6 +11,23 @@ let quillEditor;
 let bannedWords = null; // cached list from words.json
 let bannedWordsLoaded = false;
 
+// ==================== GOOGLE AUTH FRONTEND ====================
+let authSession = { token: null, user: null };
+function loadSession(){ try { const raw = localStorage.getItem('authSession'); if(raw){ const d=JSON.parse(raw); if(d&&d.token) authSession=d; } } catch{} }
+function saveSession(){ try { localStorage.setItem('authSession', JSON.stringify(authSession)); } catch{} }
+function clearSession(){ authSession={token:null,user:null}; saveSession(); updateAuthUI(); }
+function isLoggedIn(){ return !!authSession.token; }
+function getSessionToken(){ return authSession.token; }
+window.getSessionToken = getSessionToken;
+function updateAuthUI(){ const navAuth=document.getElementById('nav-auth'); if(!navAuth) return; if(isLoggedIn()){ const name=authSession.user.name || authSession.user.email.split('@')[0]; const initials=name.split(/\s+/).map(p=>p[0]).join('').slice(0,2).toUpperCase(); navAuth.innerHTML=`<div class="dropdown"><a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false"><span class="rounded-circle bg-secondary text-white d-inline-flex justify-content-center align-items-center me-2" style="width:32px;height:32px;font-size:.8rem;">${initials}</span><span style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${name}</span></a><ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu"><li><h6 class="dropdown-header">Signed in</h6></li><li><button class="dropdown-item" onclick="logoutUser()"><i class="fas fa-sign-out-alt me-2"></i>Logout</button></li></ul></div>`; } else { navAuth.innerHTML = `<a class="nav-link" href="#" onclick="showPage('login')"><i class="fas fa-sign-in-alt me-1"></i>Login</a>`; } try { refreshVisibleCommentForms(); } catch{} }
+function logoutUser(){ clearSession(); }
+window.logoutUser = logoutUser;
+function onGoogleCredential(resp){ if(!resp||!resp.credential){ alert('Google login failed.'); return; } fetch('http://localhost:3001/api/auth/google',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ idToken: resp.credential }) }).then(r=>r.json().then(j=>({ok:r.ok,data:j}))).then(({ok,data})=>{ if(!ok){ alert(data.error||'Auth failed'); return; } authSession={ token:data.sessionToken, user:data.user }; saveSession(); updateAuthUI(); showPage('home'); }).catch(e=>{ console.error(e); alert('Login error'); }); }
+window.onGoogleCredential = onGoogleCredential;
+function initAuth(){ loadSession(); updateAuthUI(); if(window.google && window.google.accounts && window.GOOGLE_CLIENT_ID){ try { google.accounts.id.initialize({ client_id: window.GOOGLE_CLIENT_ID, callback:onGoogleCredential }); const btn=document.getElementById('googleBtnContainer'); if(btn){ google.accounts.id.renderButton(btn,{ theme:'outline', size:'large', width:320 }); } } catch(e){ console.warn('Google init failed', e); } } }
+document.addEventListener('DOMContentLoaded', ()=> setTimeout(initAuth,0));
+function refreshVisibleCommentForms(){ document.querySelectorAll('.comment-form[data-gated="1"]').forEach(cf=>{ if(isLoggedIn()){ cf.querySelectorAll('[data-if-logged-in]').forEach(e=>e.classList.remove('d-none')); cf.querySelectorAll('[data-if-logged-out]').forEach(e=>e.classList.add('d-none')); } else { cf.querySelectorAll('[data-if-logged-in]').forEach(e=>e.classList.add('d-none')); cf.querySelectorAll('[data-if-logged-out]').forEach(e=>e.classList.remove('d-none')); } }); }
+
 async function loadBannedWords() {
     if (bannedWordsLoaded && Array.isArray(bannedWords)) return bannedWords;
     const candidatePaths = [
@@ -139,6 +156,10 @@ async function showPage(page) {
         // Ensure counts load and then refresh hero stats after they populate
         try { await loadAllCounts(); } catch(e){ console.warn('Counts load failed (articles):', e); }
         setTimeout(()=>{ try { updateArticlesHeroStats(); } catch(e){} }, 50);
+        break;
+    case 'login':
+        content.innerHTML = getLoginPage();
+        setTimeout(()=>{ initAuth(); }, 20);
         break;
         case 'weekly-news':
             content.innerHTML = await getArticlesPage();
@@ -1730,6 +1751,27 @@ function getWeeklyNewsList() {
 // (Deprecated getArticoliPage removed; unified to getArticlesPage)
 
 // Articles Page
+function getLoginPage(){
+    return `
+    <div class="container py-5" style="max-width:720px;">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4 p-md-5">
+                <h1 class="h3 mb-3 fw-bold d-flex align-items-center"><i class="fas fa-sign-in-alt me-2 text-primary"></i> Login</h1>
+                <p class="text-muted">Sign in with your school Google account (<code>@britishschool-timisoara.ro</code>) to post comments.</p>
+                <div id="googleBtnContainer" class="my-4 d-flex justify-content-start"></div>
+                <div class="alert alert-info small d-flex align-items-center" style="gap:8px;">
+                    <i class="fas fa-info-circle fa-lg"></i>
+                    <div>
+                        We never store your Google password. Google provides a secure one-time token which we verify.
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <button class="btn btn-outline-secondary btn-sm" onclick="showPage('home')"><i class="fas fa-arrow-left me-1"></i> Back</button>
+                </div>
+            </div>
+        </div>
+    </div>`;
+}
 async function getArticlesPage() {
     const publishedArticles = articles.filter(a => a.published);
     // Inject scoped style once
@@ -2224,87 +2266,248 @@ function closeSubmitForm() {
     // Could switch tabs or hide section if needed
 }
 
-function getArticleManagement() {
-    if (articles.length === 0) {
+function getArticleManagement(){
+        const total = articles.length;
+        const published = articles.filter(a=>a.published).length;
+        const drafts = total - published;
+        const featured = articles.filter(a=>a.featured).length;
+        const tagCounts = {};
+        articles.forEach(a=> (a.tags||[]).forEach(t=> tagCounts[t]=(tagCounts[t]||0)+1));
+        const topTag = Object.entries(tagCounts).sort((a,b)=>b[1]-a[1])[0]?.[0] || '—';
+        const allTags = Object.keys(tagCounts).sort();
         return `
-            <div class="admin-section">
-                <h4>Manage Articles</h4>
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle"></i> 
-                    No articles have been created yet. Use the "Submit New Article" tab to create your first article.
+        <style id="admin-article-manager-style">
+            .article-manager-toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px;background:#faf8f5;padding:12px 14px;border:1px solid #e4d6c5;border-radius:12px;}
+            .article-manager-stats{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px;}
+            .article-stat-pill{background:linear-gradient(135deg,#771510,#c53c23);color:#fff;padding:10px 16px;border-radius:30px;font-size:.75rem;letter-spacing:.5px;font-weight:600;display:flex;align-items:center;gap:8px;box-shadow:0 4px 12px -6px rgba(0,0,0,.3)}
+            #articlesAdminTable th{white-space:nowrap;font-size:.75rem;text-transform:uppercase;letter-spacing:.5px;background:#f3ece5;}
+            #articlesAdminTable td{vertical-align:middle;font-size:.85rem;}
+            #articlesAdminTable tbody tr.draft{background:#fff8e6;}
+            #articlesAdminTable tbody tr:hover{background:#f9f5f2;}
+            .actions-col button{margin:0 2px 4px;}
+            .tag-badge-sm{display:inline-block;padding:3px 8px;border-radius:12px;font-size:.6rem;font-weight:600;background:#00253d;color:#fff;}
+            .quick-edit-modal .form-label{font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
+        </style>
+        <div class="admin-section" id="articleManagerRoot">
+            <h4 class="mb-3 d-flex align-items-center gap-2"><i class="fas fa-folder-open text-primary"></i> Articles Management</h4>
+            <div class="article-manager-stats">
+                <div class="article-stat-pill"><i class="fas fa-database"></i>Total <strong>${total}</strong></div>
+                <div class="article-stat-pill"><i class="fas fa-check-circle"></i>Published <strong>${published}</strong></div>
+                <div class="article-stat-pill"><i class="fas fa-pencil-alt"></i>Drafts <strong>${drafts}</strong></div>
+                <div class="article-stat-pill"><i class="fas fa-star"></i>Featured <strong>${featured}</strong></div>
+                <div class="article-stat-pill"><i class="fas fa-tag"></i>Top Tag <strong>${topTag}</strong></div>
+            </div>
+            <div class="article-manager-toolbar">
+                <div class="flex-grow-1">
+                    <input type="text" class="form-control" id="amSearch" placeholder="Search title or content..." />
+                </div>
+                <div>
+                    <select id="amStatus" class="form-select form-select-sm">
+                        <option value="all">All Status</option>
+                        <option value="published">Published</option>
+                        <option value="draft">Draft</option>
+                    </select>
+                </div>
+                <div>
+                    <select id="amTag" class="form-select form-select-sm">
+                        <option value="">All Tags</option>
+                        ${allTags.map(t=>`<option value="${t}">${t}</option>`).join('')}
+                    </select>
+                </div>
+                <div>
+                    <select id="amSort" class="form-select form-select-sm">
+                        <option value="date_desc">Date ↓</option>
+                        <option value="date_asc">Date ↑</option>
+                        <option value="title_asc">Title A-Z</option>
+                        <option value="title_desc">Title Z-A</option>
+                        <option value="views_desc">Views ↓</option>
+                        <option value="comments_desc">Comments ↓</option>
+                    </select>
+                </div>
+                <button class="btn btn-outline-secondary btn-sm" id="amRefresh"><i class="fas fa-sync-alt"></i></button>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle" id="articlesAdminTable">
+                    <thead><tr>
+                        <th style="width:30px;"></th>
+                        <th>Title</th>
+                        <th>Author</th>
+                        <th>Tags</th>
+                        <th>Status</th>
+                        <th>Views</th>
+                        <th>Comm.</th>
+                        <th>Created</th>
+                        <th style="min-width:170px;">Actions</th>
+                    </tr></thead>
+                    <tbody id="amTbody">${renderArticleAdminRows(articles)}</tbody>
+                </table>
+            </div>
+            <div class="text-muted small" id="amCountFooter"></div>
+        </div>`;
+}
+
+function renderArticleAdminRows(list){
+        return list.map(a=>{
+                const primary = (a.tags||[])[0] || 'general';
+                const extra = (a.tags||[]).length>1 ? `<span class=\"badge bg-dark ms-1\">+${(a.tags||[]).length-1}</span>` : '';
+                return `<tr data-id='${a.id}' class='${a.published? '' : 'draft'}'>
+                        <td><input type='checkbox' class='form-check-input am-row-check'></td>
+                        <td><span class='fw-semibold'>${escapeHtml(a.title)}</span><br><span class='text-muted small'>${getArticleExcerpt(a.content,70)}</span></td>
+                        <td>${escapeHtml(a.author||'—')}</td>
+                        <td><span class='tag-badge-sm'>${primary}</span>${extra}</td>
+                        <td>${a.featured? '<span class="badge bg-info me-1">★</span>':''}<span class='badge ${a.published? 'bg-success':'bg-warning'}'>${a.published? 'Published':'Draft'}</span></td>
+                        <td data-views='${a.id}' class='text-center text-muted'>—</td>
+                        <td data-comments='${a.id}' class='text-center text-muted'>—</td>
+                        <td><span class='small'>${formatDate(a.createdAt)}</span></td>
+                        <td class='actions-col'>
+                            <button class='btn btn-sm btn-outline-primary' title='View' onclick="openArticle('${a.id}')"><i class='fas fa-eye'></i></button>
+                            <button class='btn btn-sm btn-outline-secondary' title='Quick Edit' onclick="openQuickEditArticle('${a.id}')"><i class='fas fa-edit'></i></button>
+                            ${a.published? `<button class='btn btn-sm btn-warning' title='Unpublish' onclick="handleUnpublishArticle('${a.id}')"><i class='fas fa-eye-slash'></i></button>`:`<button class='btn btn-sm btn-success' title='Publish' onclick="handlePublishArticle('${a.id}')"><i class='fas fa-paper-plane'></i></button>`}
+                            ${a.featured? `<button class='btn btn-sm btn-outline-secondary' title='Unfeature' onclick="handleUnfeatureArticle('${a.id}')"><i class='fas fa-star-half-alt'></i></button>`:`<button class='btn btn-sm btn-outline-info' title='Feature' onclick="handleFeatureArticle('${a.id}')"><i class='fas fa-star'></i></button>`}
+                            <button class='btn btn-sm btn-outline-danger' title='Delete' onclick="handleDeleteArticle('${a.id}')"><i class='fas fa-trash'></i></button>
+                        </td>
+                </tr>`;
+        }).join('');
+}
+
+// After admin panel loads, we must enhance the table (events, filtering, metrics)
+window.addEventListener('load', ()=>{ setTimeout(initArticleManagerEnhancements, 500); });
+function initArticleManagerEnhancements(){
+        const root = document.getElementById('articleManagerRoot');
+        if(!root) return; // not on admin page
+        const searchEl = document.getElementById('amSearch');
+        const statusEl = document.getElementById('amStatus');
+        const tagEl = document.getElementById('amTag');
+        const sortEl = document.getElementById('amSort');
+        const refreshBtn = document.getElementById('amRefresh');
+        const tbody = document.getElementById('amTbody');
+        const footer = document.getElementById('amCountFooter');
+        let debounceTimer = null;
+        function recompute(){
+                const filtered = filterSortArticles({
+                        term: searchEl.value.trim().toLowerCase(),
+                        status: statusEl.value,
+                        tag: tagEl.value,
+                        sort: sortEl.value
+                });
+                tbody.innerHTML = renderArticleAdminRows(filtered);
+                footer.textContent = `${filtered.length} article(s) shown`;
+                lazyLoadMetrics(filtered.map(a=>a.id));
+        }
+        function debounced(){ clearTimeout(debounceTimer); debounceTimer=setTimeout(recompute, 180); }
+        [searchEl,statusEl,tagEl,sortEl].forEach(el=> el && el.addEventListener('input', debounced));
+        refreshBtn && refreshBtn.addEventListener('click', async ()=>{ await loadAllData(); recompute(); });
+        recompute();
+}
+
+function filterSortArticles(opts){
+        let list = [...articles];
+        if(opts.status==='published') list = list.filter(a=>a.published);
+        else if(opts.status==='draft') list = list.filter(a=>!a.published);
+        if(opts.tag) list = list.filter(a=> (a.tags||[]).includes(opts.tag));
+        if(opts.term){
+                list = list.filter(a=> (a.title||'').toLowerCase().includes(opts.term) || (a.content||'').toLowerCase().includes(opts.term));
+        }
+        switch(opts.sort){
+                case 'date_asc': list.sort((a,b)=>a.createdAt-b.createdAt); break;
+                case 'title_asc': list.sort((a,b)=>(a.title||'').localeCompare(b.title||'')); break;
+                case 'title_desc': list.sort((a,b)=>(b.title||'').localeCompare(a.title||'')); break;
+                case 'views_desc': list.sort((a,b)=> (b._views||0)-(a._views||0)); break; // will update after metrics loaded
+                case 'comments_desc': list.sort((a,b)=> (b._comments||0)-(a._comments||0)); break;
+                default: list.sort((a,b)=>b.createdAt-a.createdAt); // date_desc
+        }
+        return list;
+}
+
+async function lazyLoadMetrics(ids){
+        for(const id of ids){
+                try {
+                        const v = await getViews('article', id);
+                        const c = await getCommentsCount('article', id);
+                        const rowViews = document.querySelector(`[data-views='${id}']`);
+                        const rowComments = document.querySelector(`[data-comments='${id}']`);
+                        const a = articles.find(a=>a.id===id);
+                        if(a){ a._views = v; a._comments = c; }
+                        if(rowViews) rowViews.textContent = v;
+                        if(rowComments) rowComments.textContent = c;
+                } catch{}
+        }
+}
+
+function escapeHtml(str){
+        return (str||'').replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;' }[c]));
+}
+
+// Quick Edit Modal
+function openQuickEditArticle(id){
+        const article = articles.find(a=>a.id===id); if(!article){ alert('Article not found'); return; }
+        const modalId='quickEditArticleModal';
+        const existing=document.getElementById(modalId); if(existing) existing.remove();
+        const tagOptions = ['school-news','features','opinion','sports','creative','humor','assembly','tech','lifestyle','music','reviews'];
+        const html = `<div class='modal fade quick-edit-modal' id='${modalId}' tabindex='-1'>
+            <div class='modal-dialog modal-lg'>
+                <div class='modal-content'>
+                    <div class='modal-header'><h5 class='modal-title'>Quick Edit</h5><button class='btn-close' data-bs-dismiss='modal'></button></div>
+                    <div class='modal-body'>
+                        <form id='quickEditForm'>
+                            <div class='mb-3'>
+                                <label class='form-label'>Title</label>
+                                <input type='text' class='form-control' id='qeTitle' value="${escapeHtml(article.title)}" required>
+                            </div>
+                            <div class='mb-3'>
+                                <label class='form-label'>Primary Tag</label>
+                                <select id='qePrimaryTag' class='form-select'>
+                                    ${tagOptions.map(t=>`<option value='${t}' ${ (article.tags||[])[0]===t? 'selected':''}>${t}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class='mb-3 form-check'>
+                                <input type='checkbox' class='form-check-input' id='qeFeatured' ${article.featured? 'checked':''}>
+                                <label class='form-check-label' for='qeFeatured'>Featured</label>
+                            </div>
+                            <div class='mb-3 form-check'>
+                                <input type='checkbox' class='form-check-input' id='qePublished' ${article.published? 'checked':''}>
+                                <label class='form-check-label' for='qePublished'>Published</label>
+                            </div>
+                            <div class='mb-3'>
+                                <label class='form-label'>Excerpt (auto from content)</label>
+                                <div class='small text-muted'>${escapeHtml(getArticleExcerpt(article.content,160))}</div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class='modal-footer'>
+                        <button class='btn btn-outline-secondary' data-bs-dismiss='modal'>Close</button>
+                        <button class='btn btn-primary' onclick="saveQuickEditArticle('${article.id}')"><i class='fas fa-save me-1'></i>Save Changes</button>
+                    </div>
                 </div>
             </div>
-        `;
-    }
-    
-    return `
-        <div class="admin-section">
-            <h4>Manage Articles</h4>
-            <div class="alert alert-info mb-3">
-                <i class="fas fa-info-circle"></i> 
-                Manage all published and draft articles. You can edit, publish/unpublish, or delete articles here.
-            </div>
-            
-            <div class="articles-list">
-                ${articles.map(article => `
-                    <div class="admin-item mb-3">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="row align-items-center">
-                                    <div class="col-md-8">
-                                        <div class="mb-2">
-                                            ${(() => { 
-                                                const tagList = article.tags || []; 
-                                                const primaryTag = tagList[0] || 'general'; 
-                                                const extraCount = tagList.length > 1 ? tagList.length - 1 : 0; 
-                                                const extra = extraCount > 0 ? `<span class=\"badge\" style=\"background:#00253d; margin-left:4px;\">+${extraCount}</span>` : ''; 
-                                                return getTagBadge(primaryTag) + extra; 
-                                            })()}
-                                        </div>
-                                        <h6 class="mb-2">${article.title}</h6>
-                                        <p class="text-muted mb-2">${getArticleExcerpt(article.content, 120)}</p>
-                                        <small class="text-muted">
-                                            <i class="fas fa-user"></i> ${article.author} • 
-                                            <i class="fas fa-calendar"></i> ${formatDate(article.createdAt)} • 
-                                            ${article.photos?.length || 0} photos • 
-                                            <span class="badge ${article.published ? 'bg-success' : 'bg-warning'}">${article.published ? 'Published' : 'Draft'}</span>
-                                            ${article.featured ? '<span class="badge bg-info ms-1">Featured</span>' : ''}
-                                        </small>
-                                    </div>
-                                    <div class="col-md-4 text-end">
-                                        <button class="btn btn-sm btn-outline-primary me-2" onclick="openArticle('${article.id}')">
-                                            <i class="fas fa-eye"></i> View
-                                        </button>
-                                        ${article.published ? `
-                                            <button class="btn btn-sm btn-warning me-2" onclick="handleUnpublishArticle('${article.id}')">
-                                                <i class="fas fa-eye-slash"></i> Unpublish
-                                            </button>
-                                        ` : `
-                                            <button class="btn btn-sm btn-success me-2" onclick="handlePublishArticle('${article.id}')">
-                                                <i class="fas fa-paper-plane"></i> Publish
-                                            </button>
-                                        `}
-                                        ${article.featured ? `
-                                            <button class="btn btn-sm btn-outline-secondary me-2" onclick="handleUnfeatureArticle('${article.id}')">
-                                                <i class='fas fa-star-half-alt'></i> Unfeature
-                                            </button>
-                                        ` : `
-                                            <button class="btn btn-sm btn-outline-info me-2" onclick="handleFeatureArticle('${article.id}')">
-                                                <i class='fas fa-star'></i> Feature
-                                            </button>
-                                        `}
-                                        <button class="btn btn-sm btn-outline-danger" onclick="handleDeleteArticle('${article.id}')">
-                                            <i class="fas fa-trash"></i> Delete
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        </div>
-    `;
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', html);
+        const m = new bootstrap.Modal(document.getElementById(modalId)); m.show();
+}
+
+async function saveQuickEditArticle(id){
+        const article = articles.find(a=>a.id===id); if(!article){ alert('Article not found'); return; }
+        const updated = { ...article };
+        updated.title = document.getElementById('qeTitle').value.trim();
+        const primary = document.getElementById('qePrimaryTag').value;
+        const existingTags = [...(article.tags||[])];
+        if(existingTags.length){ existingTags[0]=primary; } else { existingTags.push(primary); }
+        updated.tags = existingTags;
+        updated.featured = document.getElementById('qeFeatured').checked;
+        updated.published = document.getElementById('qePublished').checked;
+        try {
+                // Send update to backend if online
+                if(window.enhancedDatabase?.isOnline){
+                        const base = (window.enhancedDatabase.apiBaseUrl||'http://localhost:3001');
+                        const res = await fetch(base + '/articles/' + id, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(updated) });
+                        if(!res.ok) throw new Error('Server responded ' + res.status);
+                }
+                // Update local cache
+                const idx = articles.findIndex(a=>a.id===id); if(idx>=0) articles[idx]=updated;
+                await loadAllData();
+                showPage('admin');
+                setTimeout(()=>{ const tab = document.querySelector('[href="#articles-tab"]'); if(tab){ new bootstrap.Tab(tab).show(); } }, 150);
+        } catch(e){ console.error(e); alert('Save failed: ' + e.message); }
 }
 
 function getWeeklyNewsManagement() {
@@ -2976,16 +3179,16 @@ function showComments(itemType, itemId) {
                     <div id="commentsList">
                         <p class="text-center">Loading comments...</p>
                     </div>
-                    <div class="comment-form mt-4">
-                        <h6>Add a comment</h6>
-                        <form onsubmit="handleAddComment(event, '${itemType}', '${itemId}')">
-                            <div class="mb-3">
-                                <input type="text" class="form-control" placeholder="Il tuo nome" id="commentAuthor" required>
-                            </div>
+                    <div class="comment-form mt-4" data-gated="1">
+                        <h6 class="mb-3">Add a comment</h6>
+                        <div data-if-logged-out>
+                            <div class="alert alert-warning py-2 small mb-3"><i class="fas fa-lock me-1"></i> Please <a href="#" onclick="showPage('login')">login</a> with your school account to comment.</div>
+                        </div>
+                        <form data-if-logged-in class="d-none" onsubmit="handleAddComment(event, '${itemType}', '${itemId}')">
                             <div class="mb-3">
                                 <textarea class="form-control" placeholder="Write your comment..." id="commentContent" rows="3" required></textarea>
                             </div>
-                            <button type="submit" class="btn btn-primary">Publish Comment</button>
+                            <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-paper-plane me-1"></i> Publish Comment</button>
                         </form>
                     </div>
                 </div>
@@ -3031,8 +3234,7 @@ async function loadCommentsForModal(itemType, itemId) {
 
 async function handleAddComment(event, itemType, itemId) {
     event.preventDefault();
-    
-    const author = document.getElementById('commentAuthor').value;
+    if(!isLoggedIn()) { alert('Please login first.'); showPage('login'); return; }
     const content = document.getElementById('commentContent').value;
     
     // Ensure banned words list loaded (fire and wait once)
@@ -3048,7 +3250,7 @@ async function handleAddComment(event, itemType, itemId) {
     }
     
     try {
-        await saveComment(itemType, itemId, { author, content });
+        await saveComment(itemType, itemId, { content });
         
         // Reload comments
     loadCommentsForModal(itemType, itemId);
@@ -3058,11 +3260,15 @@ async function handleAddComment(event, itemType, itemId) {
         }
         
         // Clear form
-        document.getElementById('commentAuthor').value = '';
         document.getElementById('commentContent').value = '';
         
     } catch (error) {
-    alert('Error while saving the comment: ' + error.message);
+    if(/401|auth/i.test(error.message)){
+        alert('Authentication required. Please login.');
+        showPage('login');
+    } else {
+        alert('Error while saving the comment: ' + error.message);
+    }
     }
 }
 
@@ -3753,12 +3959,12 @@ if (typeof window.openArticle === 'undefined') {
                                 <div id="commentsList" class="mb-3">
                                     <p class="text-center text-muted small">Loading comments...</p>
                                 </div>
-                                <div class="comment-form border rounded p-3 bg-light" id="addCommentForm">
+                                <div class="comment-form border rounded p-3 bg-light" id="addCommentForm" data-gated="1">
                                     <h6 class="fw-bold mb-2">New Comment</h6>
-                                    <form onsubmit="handleAddComment(event, 'article', '${article.id}')">
-                                        <div class="mb-2">
-                                            <input type="text" class="form-control" placeholder="Your name" id="commentAuthor" required>
-                                        </div>
+                                    <div data-if-logged-out>
+                                        <div class="alert alert-warning py-2 small mb-2"><i class="fas fa-lock me-1"></i> Login with your school Google account to comment. <a href="#" onclick="showPage('login')">Go to login</a></div>
+                                    </div>
+                                    <form data-if-logged-in class="d-none" onsubmit="handleAddComment(event, 'article', '${article.id}')">
                                         <div class="mb-2">
                                             <textarea class="form-control" placeholder="Write your comment..." id="commentContent" rows="3" required></textarea>
                                         </div>

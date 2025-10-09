@@ -4,6 +4,7 @@ import multer from 'multer';
 import fs from 'fs-extra';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
+import { OAuth2Client } from 'google-auth-library';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { fileURLToPath } from 'url';
@@ -13,22 +14,29 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const server = createServer(app);
+const corsOriginsEnv = (process.env.CORS_ORIGINS || '').split(',').map(s=>s.trim()).filter(Boolean);
+const defaultOrigins = [
+    "http://localhost:5000",
+    "http://127.0.0.1:5000",
+    "http://localhost:8080",
+    "http://127.0.0.1:8080",
+    "http://localhost:3001"
+];
+const allowedOrigins = corsOriginsEnv.length ? corsOriginsEnv : defaultOrigins;
 const io = new Server(server, {
     cors: {
-        origin: [
-            "http://localhost:5000",
-            "http://127.0.0.1:5000",
-            "http://localhost:8080",
-            "http://127.0.0.1:8080",
-            "http://localhost:3001"
-        ],
+        origin: allowedOrigins,
         methods: ["GET", "POST", "PUT", "DELETE"]
     }
 });
 
-const PORT = 3001;
+const PORT = Number(process.env.PORT || 3001);
 const DATA_DIR = path.join(__dirname, 'server-data');
 const UPLOADS_DIR = path.join(DATA_DIR, 'uploads');
+// Google OAuth Client ID fallback (public identifier). Prefer setting process.env.GOOGLE_CLIENT_ID in production.
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '427696701817-g0ucnndo8htf3dhg5m8sd99ud4i9vfvd.apps.googleusercontent.com';
+const ALLOWED_DOMAIN = 'britishschool-timisoara.ro';
+const oauthClient = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 // Middleware
 app.use(cors());
@@ -176,6 +184,41 @@ function writeJSONFile(filename, data) {
 }
 
 // API Routes
+// ---------------------------------------------
+// Auth: Verify Google ID token and issue simple session token
+// ---------------------------------------------
+const inMemorySessions = new Map(); // sessionToken -> user
+
+app.post('/api/auth/google', async (req, res) => {
+    try {
+        const { idToken } = req.body;
+        if (!idToken) return res.status(400).json({ error: 'Missing idToken' });
+        const ticket = await oauthClient.verifyIdToken({ idToken, audience: GOOGLE_CLIENT_ID });
+        const payload = ticket.getPayload();
+        if (!payload || !payload.email) return res.status(400).json({ error: 'Invalid token payload' });
+        const email = payload.email.toLowerCase();
+        if (!email.endsWith('@' + ALLOWED_DOMAIN)) {
+            return res.status(403).json({ error: `Email domain not allowed. Use an @${ALLOWED_DOMAIN} email.` });
+        }
+        const name = payload.name || email.split('@')[0].replace(/\./g,' ');
+        const sessionToken = uuidv4();
+        inMemorySessions.set(sessionToken, { email, name, picture: payload.picture || '', at: Date.now() });
+        res.json({ sessionToken, user: { email, name, picture: payload.picture || '' } });
+    } catch (e) {
+        console.error('Auth error:', e);
+        res.status(401).json({ error: 'Authentication failed' });
+    }
+});
+
+// Middleware to enforce auth for protected mutations
+function requireAuth(req, res, next){
+    const token = req.headers['x-session-token'] || req.query.sessionToken || req.body.sessionToken;
+    if (!token || !inMemorySessions.has(token)) {
+        return res.status(401).json({ error: 'Auth required' });
+    }
+    req.user = inMemorySessions.get(token);
+    next();
+}
 
 // Articles endpoints
 app.get('/api/articles', (req, res) => {
@@ -674,14 +717,18 @@ app.get('/api/comments/:itemType/:itemId', (req, res) => {
     }
 });
 
-app.post('/api/comments', (req, res) => {
+app.post('/api/comments', requireAuth, (req, res) => {
     try {
         const comments = readJSONFile('comments.json');
         const id = uuidv4();
-        
+        const author = req.user?.name || 'Unknown';
         const newComment = {
             id,
-            ...req.body,
+            itemType: req.body.itemType,
+            itemId: req.body.itemId,
+            author,
+            content: req.body.content,
+            email: req.user?.email,
             createdAt: Date.now()
         };
         
