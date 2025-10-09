@@ -8,6 +8,10 @@ import { OAuth2Client } from 'google-auth-library';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+
+// Load environment variables from .env if present
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -35,11 +39,22 @@ const DATA_DIR = path.join(__dirname, 'server-data');
 const UPLOADS_DIR = path.join(DATA_DIR, 'uploads');
 // Google OAuth Client ID fallback (public identifier). Prefer setting process.env.GOOGLE_CLIENT_ID in production.
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '427696701817-g0ucnndo8htf3dhg5m8sd99ud4i9vfvd.apps.googleusercontent.com';
-const ALLOWED_DOMAIN = 'britishschool-timisoara.ro';
+const ALLOWED_DOMAIN = (process.env.ALLOWED_DOMAIN || 'britishschool-timisoara.ro').toLowerCase();
 const oauthClient = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 // Middleware
-app.use(cors());
+// CORS: allow defaultOrigins or env configured list. Also reflect origin if in list.
+app.use(cors({
+    origin: function(origin, callback){
+        if (!origin) return callback(null, true); // same-origin or curl
+        if (allowedOrigins.includes(origin)) return callback(null, true);
+        // also accept 127.0.0.1 <-> localhost swaps common in dev
+        const swap = origin.replace('127.0.0.1', 'localhost').replace('localhost', '127.0.0.1');
+        if (allowedOrigins.includes(swap)) return callback(null, true);
+        return callback(null, false);
+    },
+    credentials: true
+}));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
@@ -188,6 +203,38 @@ function writeJSONFile(filename, data) {
 // Auth: Verify Google ID token and issue simple session token
 // ---------------------------------------------
 const inMemorySessions = new Map(); // sessionToken -> user
+const SESSIONS_FILE = 'sessions.json';
+const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+function loadSessionsFromFile(){
+    try {
+        const obj = readJSONFile(SESSIONS_FILE);
+        const now = Date.now();
+        if (obj && typeof obj === 'object'){
+            for (const [token, sess] of Object.entries(obj)){
+                if (sess && sess.email && typeof sess.at === 'number' && (now - sess.at) < SESSION_TTL_MS){
+                    inMemorySessions.set(token, sess);
+                }
+            }
+        }
+        persistSessionsToFile();
+    } catch {}
+}
+
+function persistSessionsToFile(){
+    try {
+        const now = Date.now();
+        const obj = {};
+        for (const [token, sess] of inMemorySessions.entries()){
+            if (sess && sess.email && typeof sess.at === 'number' && (now - sess.at) < SESSION_TTL_MS){
+                obj[token] = sess;
+            }
+        }
+        writeJSONFile(SESSIONS_FILE, obj);
+    } catch {}
+}
+
+loadSessionsFromFile();
 
 app.post('/api/auth/google', async (req, res) => {
     try {
@@ -201,12 +248,36 @@ app.post('/api/auth/google', async (req, res) => {
             return res.status(403).json({ error: `Email domain not allowed. Use an @${ALLOWED_DOMAIN} email.` });
         }
         const name = payload.name || email.split('@')[0].replace(/\./g,' ');
-        const sessionToken = uuidv4();
-        inMemorySessions.set(sessionToken, { email, name, picture: payload.picture || '', at: Date.now() });
+    const sessionToken = uuidv4();
+    inMemorySessions.set(sessionToken, { email, name, picture: payload.picture || '', at: Date.now() });
+    persistSessionsToFile();
         res.json({ sessionToken, user: { email, name, picture: payload.picture || '' } });
     } catch (e) {
         console.error('Auth error:', e);
         res.status(401).json({ error: 'Authentication failed' });
+    }
+});
+
+// Verify/touch session endpoint: returns user if valid and renews last access time
+app.get('/api/auth/session', (req, res) => {
+    try {
+        const token = req.headers['x-session-token'] || req.query.sessionToken;
+        if (!token || !inMemorySessions.has(token)) {
+            return res.status(401).json({ error: 'No valid session' });
+        }
+        const sess = inMemorySessions.get(token);
+        if (!sess || (Date.now() - (sess.at || 0)) >= SESSION_TTL_MS) {
+            inMemorySessions.delete(token);
+            persistSessionsToFile();
+            return res.status(401).json({ error: 'Session expired' });
+        }
+        // touch last access time lightly
+        sess.at = Date.now();
+        inMemorySessions.set(token, sess);
+        persistSessionsToFile();
+        return res.json({ user: { email: sess.email, name: sess.name, picture: sess.picture || '' } });
+    } catch (e) {
+        return res.status(500).json({ error: 'Session check failed' });
     }
 });
 
@@ -216,7 +287,13 @@ function requireAuth(req, res, next){
     if (!token || !inMemorySessions.has(token)) {
         return res.status(401).json({ error: 'Auth required' });
     }
-    req.user = inMemorySessions.get(token);
+    const sess = inMemorySessions.get(token);
+    if (!sess || (Date.now() - (sess.at || 0)) >= SESSION_TTL_MS){
+        inMemorySessions.delete(token);
+        persistSessionsToFile();
+        return res.status(401).json({ error: 'Session expired' });
+    }
+    req.user = sess;
     next();
 }
 
@@ -873,10 +950,16 @@ server.listen(PORT, () => {
 // Graceful shutdown
 process.on('SIGTERM', () => {
     console.log('🛑 Server shutting down gracefully...');
+    try { persistSessionsToFile(); } catch {}
     server.close(() => {
         console.log('✅ Server closed');
         process.exit(0);
     });
+});
+
+process.on('SIGINT', () => {
+    try { persistSessionsToFile(); } catch {}
+    process.exit(0);
 });
 
 export default app;

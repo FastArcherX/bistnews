@@ -22,9 +22,60 @@ window.getSessionToken = getSessionToken;
 function updateAuthUI(){ const navAuth=document.getElementById('nav-auth'); if(!navAuth) return; if(isLoggedIn()){ const name=authSession.user.name || authSession.user.email.split('@')[0]; const initials=name.split(/\s+/).map(p=>p[0]).join('').slice(0,2).toUpperCase(); navAuth.innerHTML=`<div class="dropdown"><a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false"><span class="rounded-circle bg-secondary text-white d-inline-flex justify-content-center align-items-center me-2" style="width:32px;height:32px;font-size:.8rem;">${initials}</span><span style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${name}</span></a><ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu"><li><h6 class="dropdown-header">Signed in</h6></li><li><button class="dropdown-item" onclick="logoutUser()"><i class="fas fa-sign-out-alt me-2"></i>Logout</button></li></ul></div>`; } else { navAuth.innerHTML = `<a class="nav-link" href="#" onclick="showPage('login')"><i class="fas fa-sign-in-alt me-1"></i>Login</a>`; } try { refreshVisibleCommentForms(); } catch{} }
 function logoutUser(){ clearSession(); }
 window.logoutUser = logoutUser;
-function onGoogleCredential(resp){ if(!resp||!resp.credential){ alert('Google login failed.'); return; } fetch('http://localhost:3001/api/auth/google',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ idToken: resp.credential }) }).then(r=>r.json().then(j=>({ok:r.ok,data:j}))).then(({ok,data})=>{ if(!ok){ alert(data.error||'Auth failed'); return; } authSession={ token:data.sessionToken, user:data.user }; saveSession(); updateAuthUI(); showPage('home'); }).catch(e=>{ console.error(e); alert('Login error'); }); }
+function onGoogleCredential(resp){
+        if(!resp||!resp.credential){ alert('Google login failed.'); return; }
+        const sameOrigin = `${window.location.origin}/api/auth/google`;
+        const devFallback = 'http://localhost:3001/api/auth/google';
+        const isLocalHost = ['localhost','127.0.0.1'].includes(window.location.hostname);
+        const useDev = (isLocalHost && window.location.port !== '3001');
+        const url = useDev ? devFallback : sameOrigin;
+        console.log('[Auth] POST', url);
+        fetch(url,{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ idToken: resp.credential }) })
+            .then(r=>r.json().then(j=>({ok:r.ok,data:j})))
+            .then(({ok,data})=>{ if(!ok){ alert(data.error||'Auth failed'); return; } authSession={ token:data.sessionToken, user:data.user }; saveSession(); updateAuthUI(); showPage('home'); })
+            .catch(e=>{ console.error(e); alert('Login error'); });
+}
 window.onGoogleCredential = onGoogleCredential;
-function initAuth(){ loadSession(); updateAuthUI(); if(window.google && window.google.accounts && window.GOOGLE_CLIENT_ID){ try { google.accounts.id.initialize({ client_id: window.GOOGLE_CLIENT_ID, callback:onGoogleCredential }); const btn=document.getElementById('googleBtnContainer'); if(btn){ google.accounts.id.renderButton(btn,{ theme:'outline', size:'large', width:320 }); } } catch(e){ console.warn('Google init failed', e); } } }
+async function initAuth(){
+    loadSession();
+    // Verify existing session token against backend (same-origin or dev fallback used by EnhancedDatabase)
+    try {
+        if (authSession && authSession.token) {
+            let base = (window.enhancedDatabase && window.enhancedDatabase.apiBaseUrl) ? window.enhancedDatabase.apiBaseUrl : `${window.location.origin}/api`;
+            let ok = false;
+            try {
+                const res = await fetch(`${base}/auth/session`, { headers: { 'x-session-token': authSession.token }, cache:'no-store' });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.user) { authSession.user = data.user; saveSession(); ok = true; }
+                }
+            } catch {}
+            // Dev fallback if same-origin failed
+            if (!ok && ['localhost','127.0.0.1'].includes(location.hostname) && location.port !== '3001'){
+                try {
+                    base = 'http://localhost:3001/api';
+                    const res2 = await fetch(`${base}/auth/session`, { headers: { 'x-session-token': authSession.token }, cache:'no-store' });
+                    if (res2.ok){
+                        const data2 = await res2.json();
+                        if (data2 && data2.user){ authSession.user = data2.user; saveSession(); ok = true; }
+                    }
+                } catch {}
+            }
+            if (!ok) throw new Error('session invalid');
+        }
+    } catch {
+        // Only clear if we truly failed both paths
+        clearSession();
+    }
+    updateAuthUI();
+    if(window.google && window.google.accounts && window.GOOGLE_CLIENT_ID){
+        try { 
+            google.accounts.id.initialize({ client_id: window.GOOGLE_CLIENT_ID, callback:onGoogleCredential }); 
+            const btn=document.getElementById('googleBtnContainer'); 
+            if(btn){ google.accounts.id.renderButton(btn,{ theme:'outline', size:'large', width:320 }); }
+        } catch(e){ console.warn('Google init failed', e); }
+    }
+}
 document.addEventListener('DOMContentLoaded', ()=> setTimeout(initAuth,0));
 function refreshVisibleCommentForms(){ document.querySelectorAll('.comment-form[data-gated="1"]').forEach(cf=>{ if(isLoggedIn()){ cf.querySelectorAll('[data-if-logged-in]').forEach(e=>e.classList.remove('d-none')); cf.querySelectorAll('[data-if-logged-out]').forEach(e=>e.classList.add('d-none')); } else { cf.querySelectorAll('[data-if-logged-in]').forEach(e=>e.classList.add('d-none')); cf.querySelectorAll('[data-if-logged-out]').forEach(e=>e.classList.remove('d-none')); } }); }
 
@@ -2128,7 +2179,6 @@ function getAdminPanel() {
                 </li>
                 
                 <li class="nav-item">
-                    <a class="nav-link" href="#messages-tab" data-bs-toggle="tab" style="color: #d5a32d !important">Messages</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="#comments-tab" data-bs-toggle="tab" style="color: #d5a32d !important">Comment Moderation</a>
@@ -2149,9 +2199,7 @@ function getAdminPanel() {
                     ${getWeeklyNewsManagement()}
                 </div>
                 
-                <div class="tab-pane fade" id="messages-tab">
-                    ${getMessageManagement()}
-                </div>
+                
                 <div class="tab-pane fade" id="comments-tab">
                     ${getCommentModeration()}
                 </div>
@@ -2498,7 +2546,7 @@ async function saveQuickEditArticle(id){
         try {
                 // Send update to backend if online
                 if(window.enhancedDatabase?.isOnline){
-                        const base = (window.enhancedDatabase.apiBaseUrl||'http://localhost:3001');
+                    const base = (window.enhancedDatabase.apiBaseUrl||`${window.location.origin}`);
                         const res = await fetch(base + '/articles/' + id, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(updated) });
                         if(!res.ok) throw new Error('Server responded ' + res.status);
                 }
@@ -2581,14 +2629,7 @@ function getWeeklyNewsManagement() {
     `;
 }
 
-function getMessageManagement() {
-    return `
-        <div class="admin-section">
-            <h4>Received Messages</h4>
-            <p class="text-muted">Contact form submissions will appear here.</p>
-        </div>
-    `;
-}
+// Messages management removed as requested
 
 function getDataManagementTab() {
     return `
@@ -2845,58 +2886,51 @@ function updateReaderPage() {
 async function handleAdminLogin(event) {
     event.preventDefault();
     const password = document.getElementById('adminPassword').value;
-    
     try {
         await loginAdmin(password);
         checkAdminAuth();
-    } catch (error) {
-        alert('Password incorrect. Please try again.');
+    } catch (e) {
+        alert('Invalid password');
     }
 }
-
-// Registration function removed - admin accounts managed in Firebase Console
 
 function checkAdminAuth() {
     const loginSection = document.getElementById('loginSection');
     const adminPanel = document.getElementById('adminPanel');
-    
-    // Initialize global variables if not set
-    if (typeof window.isAdmin === 'undefined') {
-        window.isAdmin = false;
-    }
-    if (typeof window.currentUser === 'undefined') {
-        window.currentUser = null;
-    }
-    
+    if (typeof window.isAdmin === 'undefined') window.isAdmin = false;
+    if (typeof window.currentUser === 'undefined') window.currentUser = null;
+
     console.log('checkAdminAuth - isAdmin:', window.isAdmin, 'currentUser:', window.currentUser?.email || 'none');
-    
+
     if (window.isAdmin && window.currentUser) {
-        loginSection.style.display = 'none';
-        adminPanel.style.display = 'block';
-        adminPanel.innerHTML = getAdminPanel();
-        
-        // Load comments for moderation if on that tab
+        if (loginSection) loginSection.style.display = 'none';
+        if (adminPanel) {
+            adminPanel.style.display = 'block';
+            adminPanel.innerHTML = getAdminPanel();
+        }
+
+        // Wire up tab lazy-loads
         setTimeout(() => {
             const commentsTab = document.querySelector('a[href="#comments-tab"]');
             if (commentsTab) {
                 // Initial load
-                loadAllCommentsForModeration();
+                try { loadAllCommentsForModeration(); } catch {}
                 // Reload when tab is clicked
                 commentsTab.addEventListener('shown.bs.tab', function () {
-                    loadAllCommentsForModeration();
+                    try { loadAllCommentsForModeration(); } catch {}
                 });
             }
 
             const galleryTab = document.querySelector('a[href="#gallery-tab"]');
             if (galleryTab) {
                 galleryTab.addEventListener('shown.bs.tab', function () {
-                    loadAdminAlbums();
+                    try { loadAdminAlbums(); } catch {}
                 });
             }
         }, 500);
     } else {
-        loginSection.style.display = 'block';
-        adminPanel.style.display = 'none';
+        if (loginSection) loginSection.style.display = 'block';
+        if (adminPanel) adminPanel.style.display = 'none';
     }
 }
 
@@ -2960,7 +2994,7 @@ async function handlePublishArticle(articleId) {
     try {
         const article = articles.find(a => a.id === articleId);
     if (!article) throw new Error('Article not found');
-        const base = ((window.enhancedDatabase && window.enhancedDatabase.apiBaseUrl) || 'http://localhost:3001')
+    const base = ((window.enhancedDatabase && window.enhancedDatabase.apiBaseUrl) || `${window.location.origin}`)
             .replace(/\/$/, '')
             .replace(/\/api$/, '');
         const res = await fetch(`${base}/api/articles/${articleId}/publish`, { method: 'POST' });
@@ -2983,7 +3017,7 @@ async function handleUnpublishArticle(articleId) {
     try {
         const article = articles.find(a => a.id === articleId);
     if (!article) throw new Error('Article not found');
-        const base = ((window.enhancedDatabase && window.enhancedDatabase.apiBaseUrl) || 'http://localhost:3001')
+    const base = ((window.enhancedDatabase && window.enhancedDatabase.apiBaseUrl) || `${window.location.origin}`)
             .replace(/\/$/, '')
             .replace(/\/api$/, '');
         const res = await fetch(`${base}/api/articles/${articleId}/unpublish`, { method: 'POST' });
@@ -3002,7 +3036,7 @@ async function handleUnpublishArticle(articleId) {
 
 async function handleFeatureArticle(articleId){
     try {
-        const base = ((window.enhancedDatabase && window.enhancedDatabase.apiBaseUrl) || 'http://localhost:3001').replace(/\/$/, '').replace(/\/api$/, '');
+    const base = ((window.enhancedDatabase && window.enhancedDatabase.apiBaseUrl) || `${window.location.origin}`).replace(/\/$/, '').replace(/\/api$/, '');
         const res = await fetch(`${base}/api/articles/${articleId}/feature`, { method:'POST' });
         if(!res.ok) throw new Error('Server error '+res.status);
         await loadAllData();
@@ -3013,7 +3047,7 @@ async function handleFeatureArticle(articleId){
 }
 async function handleUnfeatureArticle(articleId){
     try {
-        const base = ((window.enhancedDatabase && window.enhancedDatabase.apiBaseUrl) || 'http://localhost:3001').replace(/\/$/, '').replace(/\/api$/, '');
+    const base = ((window.enhancedDatabase && window.enhancedDatabase.apiBaseUrl) || `${window.location.origin}`).replace(/\/$/, '').replace(/\/api$/, '');
         const res = await fetch(`${base}/api/articles/${articleId}/unfeature`, { method:'POST' });
         if(!res.ok) throw new Error('Server error '+res.status);
         await loadAllData();
@@ -3176,8 +3210,8 @@ function showComments(itemType, itemId) {
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div id="commentsList">
-                        <p class="text-center">Loading comments...</p>
+                    <div id="commentsList" class="d-flex flex-column gap-3">
+                        <div class="text-center text-muted small py-2">Loading comments...</div>
                     </div>
                     <div class="comment-form mt-4" data-gated="1">
                         <h6 class="mb-3">Add a comment</h6>
@@ -3202,6 +3236,8 @@ function showComments(itemType, itemId) {
     
     // Load comments
     loadCommentsForModal(itemType, itemId);
+    // Ensure auth-gated UI reflects current login state
+    try { refreshVisibleCommentForms(); } catch {}
     
     // Remove modal when closed
     modal.addEventListener('hidden.bs.modal', () => {
@@ -3214,21 +3250,30 @@ async function loadCommentsForModal(itemType, itemId) {
         const itemComments = await loadComments(itemType, itemId);
         const commentsList = document.getElementById('commentsList');
         
-        if (itemComments.length === 0) {
-            commentsList.innerHTML = '<p class="text-muted">No comments yet. Be the first to comment!</p>';
+        const escapeHtml = (s)=> String(s||'')
+            .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+            .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+        if (!itemComments || itemComments.length === 0) {
+            commentsList.innerHTML = `
+                <div class="text-center text-muted py-2">
+                    <i class="fas fa-comment-slash me-1"></i> No comments yet. Be the first to comment!
+                </div>`;
         } else {
-            commentsList.innerHTML = itemComments.map(comment => `
-                <div class="comment-item">
-                    <div class="comment-header">
-                        <strong>${comment.author}</strong>
-                        <small class="text-muted">${formatDate(comment.createdAt)}</small>
+            commentsList.innerHTML = itemComments.map(c => {
+                const name = escapeHtml(c.author || 'Anonymous');
+                const text = escapeHtml(c.content || '');
+                return `
+                <div class="comment-item p-2 border rounded">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <strong>${name}</strong>
+                        <small class="text-muted">${formatDate(c.createdAt)}</small>
                     </div>
-                    <div class="comment-content">${comment.content}</div>
-                </div>
-            `).join('');
+                    <div class="comment-content">${text}</div>
+                </div>`;
+            }).join('');
         }
     } catch (error) {
-    document.getElementById('commentsList').innerHTML = '<p class="text-danger">Error loading comments.</p>';
+        document.getElementById('commentsList').innerHTML = '<div class="text-danger small">Error loading comments.</div>';
     }
 }
 
@@ -3251,9 +3296,13 @@ async function handleAddComment(event, itemType, itemId) {
     
     try {
         await saveComment(itemType, itemId, { content });
-        
-        // Reload comments
-    loadCommentsForModal(itemType, itemId);
+        // Reload comments and counts after save
+        await loadCommentsForModal(itemType, itemId);
+        try {
+            const count = await getCommentsCount(itemType, itemId);
+            const counterEl = document.getElementById(`comments-count-${itemId}`);
+            if (counterEl) counterEl.textContent = count;
+        } catch {}
         // Refresh hero engagement stats if on articles page
         if (window.currentPage === 'articles' || window.currentPage === 'weekly-news') {
             setTimeout(()=>{ try { updateArticlesHeroStats(); } catch(e){} }, 50);
@@ -3264,6 +3313,7 @@ async function handleAddComment(event, itemType, itemId) {
         
     } catch (error) {
     if(/401|auth/i.test(error.message)){
+        try { clearSession(); } catch {}
         alert('Authentication required. Please login.');
         showPage('login');
     } else {
@@ -3862,7 +3912,7 @@ async function handleCreateAlbum(event) {
         }
         
         // Get the correct API base URL
-        const apiBase = (window.enhancedDatabase && window.enhancedDatabase.apiBaseUrl) || 'http://localhost:3001/api';
+    const apiBase = (window.enhancedDatabase && window.enhancedDatabase.apiBaseUrl) || `${window.location.origin}/api`;
         const apiUrl = apiBase.replace(/\/api$/, '') + '/api/gallery';
         
         const response = await fetch(apiUrl, {
@@ -3898,7 +3948,7 @@ async function deleteAlbum(albumId) {
     
     try {
         // Get the correct API base URL
-        const apiBase = (window.enhancedDatabase && window.enhancedDatabase.apiBaseUrl) || 'http://localhost:3001/api';
+    const apiBase = (window.enhancedDatabase && window.enhancedDatabase.apiBaseUrl) || `${window.location.origin}/api`;
         const apiUrl = apiBase.replace(/\/api$/, '') + `/api/gallery/${albumId}`;
         
         const response = await fetch(apiUrl, {
@@ -3981,7 +4031,9 @@ if (typeof window.openArticle === 'undefined') {
             </div>`;
         const existing = document.getElementById('articleModal'); if (existing) existing.remove();
         document.body.insertAdjacentHTML('beforeend', modalHtml);
-        const modal = new bootstrap.Modal(document.getElementById('articleModal')); modal.show();
+    const modal = new bootstrap.Modal(document.getElementById('articleModal')); modal.show();
+    // Ensure auth-gated UI reflects current login state
+    try { refreshVisibleCommentForms(); } catch {}
         // Load comments directly into embedded section
         loadCommentsForModal('article', article.id);
     }
@@ -4033,7 +4085,7 @@ if (typeof handleSubmitNewArticle === 'undefined') {
 
             // Determine backend base (strip trailing /) and avoid duplicating /api
             function getApiBase() {
-                let base = (window.enhancedDatabase && window.enhancedDatabase.apiBaseUrl) || 'http://localhost:3001';
+                let base = (window.enhancedDatabase && window.enhancedDatabase.apiBaseUrl) || `${window.location.origin}`;
                 base = base.replace(/\/$/, '');
                 // If base already ends with /api remove it (we will append explicitly)
                 if (/\/api$/i.test(base)) base = base.replace(/\/api$/i, '');

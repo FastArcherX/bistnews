@@ -7,8 +7,8 @@
     "build": "node build.js",
     "start": "node server.js",
     "dev": "concurrently \"npm:dev:backend\" \"npm:dev:frontend\"",
-    "dev:backend": "nodemon server.js",
-    "dev:frontend": "live-server dist --port=8080",
+  "dev:backend": "nodemon --config nodemon.json server.js",
+  "dev:frontend": "live-server dist --port=8080 --host=localhost",
     "frontend": "http-server dist -p 8080 -a 0.0.0.0 -c-1",
     "setup": "npm install express socket.io multer cors fs-extra uuid concurrently && npm install -g http-server"
   },
@@ -19,6 +19,7 @@
     "express": "^4.21.2",
     "fs-extra": "^11.3.2",
     "multer": "^2.0.2",
+    "dotenv": "^16.4.5",
     "google-auth-library": "^9.14.1",
     "socket.io": "^4.8.1",
     "uuid": "^9.0.1"

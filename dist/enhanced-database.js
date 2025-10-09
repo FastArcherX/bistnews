@@ -3,7 +3,9 @@
 
 class EnhancedDatabase {
     constructor() {
-        this.apiBaseUrl = 'http://localhost:3001/api';
+        // Prefer same-origin (works behind Nginx on port 80); fall back to localhost:3001 in dev
+        this.apiBaseUrl = `${window.location.origin}/api`;
+        this.devFallbackBase = 'http://localhost:3001/api';
         this.isOnline = false;
         this.currentUser = null;
         this.socket = null;
@@ -12,31 +14,36 @@ class EnhancedDatabase {
     }
 
     async initializeDatabase() {
-        // Check if backend is available with retry logic
-        let connectionAttempts = 0;
-        const maxAttempts = 3;
-        
-        while (connectionAttempts < maxAttempts && !this.isOnline) {
-            try {
-                console.log(`🔗 Attempting to connect to backend (attempt ${connectionAttempts + 1}/${maxAttempts})...`);
-                const response = await fetch(`${this.apiBaseUrl}/health`);
-                if (response.ok) {
-                    this.isOnline = true;
-                    console.log('🌐 Connected to BIST News Backend Server');
-                    break;
+        // Try same-origin first; if it fails, try dev fallback
+        const tryConnect = async (base) => {
+            let attempts = 0; const max = 3;
+            while (attempts < max) {
+                try {
+                    console.log(`🔗 Checking backend at ${base} (attempt ${attempts + 1}/${max})...`);
+                    const response = await fetch(`${base}/health`);
+                    if (response.ok) return true;
+                } catch (e) {
+                    // ignore
                 }
-            } catch (error) {
-                connectionAttempts++;
-                console.log(`💾 Backend connection attempt ${connectionAttempts} failed:`, error.message);
-                if (connectionAttempts < maxAttempts) {
-                    await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
-                }
+                attempts++;
+                await new Promise(r=>setTimeout(r, 1000));
+            }
+            return false;
+        };
+
+        // Attempt same-origin
+        let ok = await tryConnect(this.apiBaseUrl);
+        if (!ok) {
+            // Attempt dev fallback
+            console.log('⚠️ Same-origin backend not reachable, trying dev fallback at localhost:3001');
+            if (await tryConnect(this.devFallbackBase)) {
+                this.apiBaseUrl = this.devFallbackBase;
+                ok = true;
             }
         }
-        
-        if (!this.isOnline) {
-            console.log('💾 Backend unavailable after all attempts, using localStorage fallback');
-        }
+
+        this.isOnline = !!ok;
+        console.log(this.isOnline ? '🌐 Connected to BIST News Backend Server' : '💾 Backend unavailable, using localStorage fallback');
 
         // Initialize localStorage collections as fallback
         const collections = ['articles', 'weeklyNews', 'comments', 'messages', 'views', 'users'];
@@ -68,9 +75,10 @@ class EnhancedDatabase {
     }
 
     connectWebSocket() {
-        if (this.isOnline && typeof io !== 'undefined') {
+        if (typeof io !== 'undefined') {
             try {
-                this.socket = io('http://localhost:3001');
+                const socketOrigin = (new URL(this.apiBaseUrl)).origin;
+                this.socket = io(socketOrigin);
                 
                 this.socket.on('connect', () => {
                     console.log('📡 Real-time updates connected');
@@ -386,6 +394,8 @@ class EnhancedDatabase {
 
     // Comments
     async saveComment(itemType, itemId, commentData) {
+        // Ensure backend connectivity check completed
+        try { await this.initPromise; } catch {}
         if (this.isOnline) {
             try {
                 const sessionToken = (window.getSessionToken && window.getSessionToken()) || null;
@@ -403,9 +413,19 @@ class EnhancedDatabase {
                     const result = await response.json();
                     console.log('💬 Comment saved to server');
                     return result.id;
+                } else {
+                    // Surface auth errors so UI can redirect to login
+                    if (response.status === 401) {
+                        throw new Error('401 Unauthorized');
+                    }
+                    throw new Error(`HTTP ${response.status}`);
                 }
             } catch (error) {
-                console.error('API error, falling back to localStorage:', error);
+                console.error('API error saving comment:', error);
+                // Do not fallback on auth errors; let UI handle re-login
+                if (String(error).includes('401')) {
+                    throw error;
+                }
             }
         }
         
@@ -413,6 +433,8 @@ class EnhancedDatabase {
     }
 
     async loadComments(itemType, itemId) {
+        // Ensure backend connectivity check completed
+        try { await this.initPromise; } catch {}
         if (this.isOnline) {
             try {
                 const response = await fetch(`${this.apiBaseUrl}/comments/${itemType}/${itemId}`);
@@ -429,6 +451,7 @@ class EnhancedDatabase {
     }
 
     async loadAllComments() {
+        try { await this.initPromise; } catch {}
         if (this.isOnline) {
             try {
                 const response = await fetch(`${this.apiBaseUrl}/comments`);
@@ -807,6 +830,7 @@ class EnhancedDatabase {
     }
 
     async getCommentsCount(itemType, itemId) {
+        try { await this.initPromise; } catch {}
         const comments = await this.loadComments(itemType, itemId);
         return comments.length;
     }
