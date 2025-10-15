@@ -34,6 +34,234 @@
             --font-tertiary: 'Montserrat', sans-serif;
         }
         
+        /* Loading Screen Styles */
+        #loadingScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--quaternary-color) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+        
+        #loadingScreen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        .loading-content {
+            text-align: center;
+            color: var(--secondary-color);
+        }
+        
+        .loading-logo {
+            font-family: var(--font-main);
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .loading-subtitle {
+            font-family: var(--font-secondary);
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+        
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 1rem;
+            position: relative;
+        }
+        
+        .spinner-circle {
+            width: 100%;
+            height: 100%;
+            border: 3px solid rgba(240, 229, 203, 0.3);
+            border-top: 3px solid var(--secondary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            transition: all 0.5s ease;
+        }
+        
+        .spinner-circle.success {
+            border: 3px solid var(--secondary-color);
+            animation: none;
+        }
+        
+        .checkmark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            width: 30px;
+            height: 30px;
+            transition: transform 0.3s ease;
+        }
+        
+        .checkmark.show {
+            transform: translate(-50%, -50%) scale(1);
+        }
+        
+        .checkmark svg {
+            width: 100%;
+            height: 100%;
+            fill: var(--secondary-color);
+        }
+        
+        .loading-text {
+            font-family: var(--font-secondary);
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-top: 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Beta Warning Popup */
+        #betaWarning {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.3s ease;
+        }
+        
+        #betaWarning.show {
+            display: flex;
+        }
+        
+        .beta-popup {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--quaternary-color) 100%);
+            border: 3px solid var(--secondary-color);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            position: relative;
+            animation: popupSlideIn 0.5s ease;
+        }
+        
+        .beta-icon {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .beta-icon i {
+            font-size: 4rem;
+            color: #FFD700;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        .beta-popup h2 {
+            color: var(--secondary-color);
+            font-family: var(--font-main);
+            font-size: 2rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .beta-popup p {
+            color: var(--secondary-color);
+            font-family: var(--font-secondary);
+            font-size: 1.1rem;
+            line-height: 1.6;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .beta-close-btn {
+            background: var(--secondary-color);
+            color: var(--primary-color);
+            border: none;
+            padding: 12px 30px;
+            font-family: var(--font-secondary);
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 30px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .beta-close-btn:hover {
+            background: #FFD700;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        .beta-close-icon {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            color: var(--secondary-color);
+            font-size: 1.5rem;
+            cursor: pointer;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        
+        .beta-close-icon:hover {
+            background: rgba(240, 229, 203, 0.2);
+            transform: rotate(90deg);
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        @keyframes popupSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+        
         body {
             font-family: var(--font-tertiary);
             color: var(--quaternary-color);
@@ -95,6 +323,163 @@
         .trending-section {
             background: var(--secondary-color);
             padding: 60px 0;
+        }
+        
+        /* School Values Section */
+        .school-values-section {
+            background: #e1be00;
+            padding: 80px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .school-values-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="blackDots" width="30" height="30" patternUnits="userSpaceOnUse"><circle cx="15" cy="15" r="1.5" fill="%23000000" opacity="0.05"/></pattern></defs><rect width="100" height="100" fill="url(%23blackDots)"/></svg>');
+            opacity: 0.8;
+        }
+        
+        .school-values-container {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .school-values-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        
+        .school-values-title {
+            font-family: var(--font-main);
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+        }
+        
+        .school-values-subtitle {
+            font-family: var(--font-secondary);
+            font-size: 1.2rem;
+            color: #2d2d2d;
+            opacity: 0.8;
+        }
+        
+        .values-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            margin-top: 50px;
+        }
+        
+        .value-group {
+            background: #1a1a1a;
+            border-radius: 20px;
+            padding: 40px 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+        
+        .value-group::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 215, 0, 0.2), transparent);
+            transform: rotate(45deg);
+            transition: transform 0.6s ease;
+            opacity: 0;
+        }
+        
+        .value-group:hover::before {
+            opacity: 1;
+            transform: rotate(45deg) translate(20%, 20%);
+        }
+        
+        .value-group:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px rgba(255, 215, 0, 0.4);
+        }
+        
+        .value-items {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .value-item {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255, 215, 0, 0.1);
+            border-radius: 12px;
+            border: 2px solid #FFD700;
+            transition: all 0.3s ease;
+        }
+        
+        .value-item:hover {
+            background: #FFD700;
+            transform: scale(1.05);
+        }
+        
+        .value-item:hover .value-text {
+            color: #1a1a1a;
+            font-weight: 700;
+        }
+        
+        .value-text {
+            font-family: var(--font-secondary);
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #FFD700;
+            margin: 0;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            transition: all 0.3s ease;
+        }
+        
+        .value-icon {
+            font-size: 4rem;
+            color: #FFD700;
+            margin-bottom: 25px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
+        }
+        
+        .value-group-title {
+            font-family: var(--font-main);
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #FFD700;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        @media (max-width: 768px) {
+            .school-values-title {
+                font-size: 2.5rem;
+            }
+            
+            .values-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            
+            .value-group {
+                padding: 30px 20px;
+            }
+            
+            .value-icon {
+                font-size: 3rem;
+            }
         }
         
         .trending-header {
@@ -998,6 +1383,44 @@
     </style>
 </head>
 <body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen">
+        <div class="loading-content">
+            <div class="loading-logo">The Student Voice</div>
+            <div class="loading-subtitle">British International School of Timisoara</div>
+            <div class="loading-spinner">
+                <div class="spinner-circle" id="spinnerCircle"></div>
+                <div class="checkmark" id="checkmark">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="loading-text" id="loadingText">Initializing database...</div>
+        </div>
+    </div>
+
+    <!-- Beta Warning Popup -->
+    <div id="betaWarning">
+        <div class="beta-popup">
+            <div class="beta-close-icon" onclick="closeBetaWarning()">
+                <i class="fas fa-times"></i>
+            </div>
+            <div class="beta-icon">
+                <i class="fas fa-flask"></i>
+            </div>
+            <h2>Welcome to Beta!</h2>
+            <p>
+                The Student Voice is currently in <strong>beta testing</strong>. 
+                You may experience rapid changes, new features being added, and occasional updates as we improve the platform. 
+                Thank you for your patience and support!
+            </p>
+            <button class="beta-close-btn" onclick="closeBetaWarning()">
+                Got it, let's explore!
+            </button>
+        </div>
+    </div>
+
     <nav class="navbar navbar-expand-lg">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="#" onclick="showPage('home')">
@@ -1053,6 +1476,38 @@
     <script>
         // Injected Google Client ID (public identifier, safe to expose)
         window.GOOGLE_CLIENT_ID = '427696701817-g0ucnndo8htf3dhg5m8sd99ud4i9vfvd.apps.googleusercontent.com';
+        
+        // Ensure loading screen is visible initially
+        document.addEventListener('DOMContentLoaded', function() {
+            const loadingScreen = document.getElementById('loadingScreen');
+            if (loadingScreen) {
+                loadingScreen.style.display = 'flex';
+                loadingScreen.classList.remove('hidden');
+            }
+        });
+        
+        // Beta Warning Popup Functions
+        function showBetaWarning() {
+            const betaWarning = document.getElementById('betaWarning');
+            if (betaWarning) {
+                betaWarning.classList.add('show');
+            }
+        }
+        
+        function closeBetaWarning() {
+            const betaWarning = document.getElementById('betaWarning');
+            if (betaWarning) {
+                betaWarning.classList.remove('show');
+            }
+        }
+        
+        // Close popup when clicking outside
+        document.addEventListener('click', function(e) {
+            const betaWarning = document.getElementById('betaWarning');
+            if (e.target === betaWarning) {
+                closeBetaWarning();
+            }
+        });
     </script>
     <script src="enhanced-database.js"></script>
     <script src="app.js"></script>

@@ -4,7 +4,7 @@
 # - Installs git/node/npm if missing (uses sudo/apt)
 # - Configura Nginx su porta 80 sostituendo la pagina di default
 # - Crea un servizio systemd per avvio automatico del backend
-# - Clona la tua repo e copia SOLO: dist/, build.js, package.json, package-lock.json, server.js, .env.example
+# - Clona la tua repo e copia SOLO: dist/, build.js, package.json, package-lock.json, server.js, .env.example, run-pi.sh (se presente)
 # - Installs npm packages
 # - Ensures server-data structure and required JSON files exist
 
@@ -82,6 +82,11 @@ if [[ -f "${WORK_DIR}/.env.example" ]]; then
   fi
 fi
 
+# Copy optional runner script if present and make it executable
+if [[ -f "${WORK_DIR}/run-pi.sh" ]]; then
+  install -m 0755 "${WORK_DIR}/run-pi.sh" "${APP_DIR}/run-pi.sh"
+fi
+
 # Set sensible defaults in .env if missing
 PI_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
 ENV_FILE="${APP_DIR}/.env"
@@ -98,15 +103,59 @@ grep -q '^GOOGLE_CLIENT_ID=' "${ENV_FILE}" || echo "GOOGLE_CLIENT_ID=" >> "${ENV
 # Ownership to app user
 chown -R "${APP_USER}:${APP_USER}" "${APP_DIR}"
 
+# Ensure runner remains executable after ownership changes
+if [[ -f "${APP_DIR}/run-pi.sh" ]]; then
+  chmod 0755 "${APP_DIR}/run-pi.sh"
+fi
+
 echo "[3/4] Installing Node dependencies..."
 cd "${APP_DIR}"
-if [[ -f package-lock.json ]]; then
-  if ! npm ci --omit=dev; then
-    echo "[WARN] npm ci failed, falling back to npm install"
-    npm install --omit=dev
+
+# Configure npm for better network resilience
+npm config set fetch-timeout 60000
+npm config set fetch-retry-mintimeout 10000
+npm config set fetch-retry-maxtimeout 60000
+npm config set fetch-retries 3
+
+# Test network connectivity to npm registry
+echo "[INFO] Testing network connectivity..."
+if ! curl -s --connect-timeout 10 --max-time 30 https://registry.npmjs.org/ >/dev/null; then
+  echo "[WARN] Cannot reach npm registry. Trying alternative approach..."
+  npm config set registry https://registry.npmmirror.com/
+fi
+
+# Install with retries
+install_success=false
+for attempt in 1 2 3; do
+  echo "[INFO] Npm install attempt $attempt/3..."
+  if [[ -f package-lock.json ]]; then
+    if npm ci --omit=dev --verbose; then
+      install_success=true
+      break
+    elif [[ $attempt -eq 1 ]]; then
+      echo "[WARN] npm ci failed, trying npm install..."
+      if npm install --omit=dev --verbose; then
+        install_success=true
+        break
+      fi
+    fi
+  else
+    if npm install --omit=dev --verbose; then
+      install_success=true
+      break
+    fi
   fi
-else
-  npm install --omit=dev
+  
+  if [[ $attempt -lt 3 ]]; then
+    echo "[WARN] Attempt $attempt failed, retrying in 10 seconds..."
+    sleep 10
+  fi
+done
+
+if [[ "$install_success" != "true" ]]; then
+  echo "[ERROR] Failed to install npm dependencies after 3 attempts"
+  echo "[INFO] You can try manually later with: cd ${APP_DIR} && npm install --omit=dev"
+  echo "[INFO] Continuing with setup..."
 fi
 
 echo "[4/4] Ensuring server-data structure and files..."
@@ -212,3 +261,15 @@ echo "✅ Setup completo. Il sito è ora su: http://$(hostname -I | awk '{print 
 echo "- Backend health: http://$(hostname -I | awk '{print $1}')/api/health"
 echo "- File app: ${APP_DIR} | Frontend pubblicato in: ${WWW_DIR}/dist"
 echo "- Servizio: systemctl status ${SERVICE_NAME}"
+echo ""
+echo "📋 Passi post-setup:"
+echo "1. Configura Google Client ID: sudo nano ${APP_DIR}/.env"
+echo "   (Imposta GOOGLE_CLIENT_ID=il-tuo-client-id)"
+echo "2. Riavvia il servizio: sudo systemctl restart ${SERVICE_NAME}"
+echo "3. Verifica stato: sudo systemctl status ${SERVICE_NAME}"
+echo ""
+echo "🔧 Se ci sono stati errori npm:"
+echo "- Riprova manualmente: cd ${APP_DIR} && sudo npm install --omit=dev"
+echo "- Oppure usa il runner: sudo ${APP_DIR}/run-pi.sh start"
+echo ""
+echo "📊 Log del servizio: sudo journalctl -u ${SERVICE_NAME} -f"

@@ -621,24 +621,108 @@ function closeImageLightbox() {
 }
 
 
+// Loading Screen Management
+function showLoadingScreen() {
+    const loadingScreen = document.getElementById('loadingScreen');
+    if (loadingScreen) {
+        loadingScreen.classList.remove('hidden');
+    }
+}
+
+function hideLoadingScreen() {
+    const loadingScreen = document.getElementById('loadingScreen');
+    const spinnerCircle = document.getElementById('spinnerCircle');
+    const checkmark = document.getElementById('checkmark');
+    const loadingText = document.getElementById('loadingText');
+    
+    if (!loadingScreen) return;
+    
+    // Update loading text
+    if (loadingText) {
+        loadingText.textContent = 'Ready!';
+    }
+    
+    // Transform spinner to success checkmark
+    if (spinnerCircle) {
+        spinnerCircle.classList.add('success');
+    }
+    
+    if (checkmark) {
+        checkmark.classList.add('show');
+    }
+    
+    // Hide the loading screen after animation and show beta warning
+    setTimeout(() => {
+        loadingScreen.classList.add('hidden');
+        // Show beta warning popup after loading screen fades out
+        setTimeout(() => {
+            if (typeof showBetaWarning === 'function') {
+                showBetaWarning();
+            }
+        }, 800);
+    }, 1000);
+}
+
+async function initializeApp() {
+    try {
+        console.log('🚀 Starting app initialization...');
+        
+        // Wait for database to be ready
+        if (window.db && window.db.initPromise) {
+            console.log('⏳ Waiting for database initialization...');
+            await window.db.initPromise;
+            console.log('✅ Database initialized successfully');
+        }
+        
+        // Initialize the main app
+        console.log('🏠 Loading home page...');
+        showPage('home');
+        
+        // Load all data
+        console.log('📊 Loading application data...');
+        await loadAllData();
+        
+        // Small delay to show the loading animation (remove in production if desired)
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        // Initialize real-time view updates if socket.io available
+        if (typeof io !== 'undefined') {
+            try {
+                const socket = io();
+                socket.on('viewUpdated', payload => {
+                    if (!payload || payload.itemType !== 'article') return;
+                    const el = document.querySelector(`[data-views-id="${payload.itemId}"]`);
+                    if (el) el.textContent = payload.count;
+                    const el2 = document.getElementById(`views-count-${payload.itemId}`);
+                    if (el2) el2.textContent = payload.count;
+                });
+            } catch (e) { console.warn('Socket init failed', e); }
+        }
+        
+        console.log('🎉 App initialization completed!');
+        
+        // Hide loading screen with success animation
+        hideLoadingScreen();
+        
+    } catch (error) {
+        console.error('❌ App initialization failed:', error);
+        
+        // Show error and hide loading screen anyway
+        const loadingText = document.getElementById('loadingText');
+        if (loadingText) {
+            loadingText.textContent = 'Error loading app. Continuing...';
+        }
+        
+        setTimeout(() => {
+            hideLoadingScreen();
+        }, 2000);
+    }
+}
+
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded, initializing app...');
-    showPage('home');
-    loadAllData();
-    // Initialize real-time view updates if socket.io available
-    if (typeof io !== 'undefined') {
-        try {
-            const socket = io();
-            socket.on('viewUpdated', payload => {
-                if (!payload || payload.itemType !== 'article') return;
-                const el = document.querySelector(`[data-views-id="${payload.itemId}"]`);
-                if (el) el.textContent = payload.count;
-                const el2 = document.getElementById(`views-count-${payload.itemId}`);
-                if (el2) el2.textContent = payload.count;
-            });
-        } catch (e) { console.warn('Socket init failed', e); }
-    }
+    console.log('DOM loaded, starting app initialization...');
+    initializeApp();
 });
 
 async function loadAllData() {
@@ -701,6 +785,82 @@ async function loadAllCounts() {
             console.error('Error loading counts for announcement:', announcement.id, error);
         }
     }
+}
+
+// School Values Section HTML
+function getSchoolValuesSection() {
+    return `
+        <div class="school-values-section">
+            <div class="container school-values-container">
+                <div class="school-values-header">
+                    <h2 class="school-values-title">Our School Values</h2>
+                    <p class="school-values-subtitle">The principles that guide our learning community at BIST</p>
+                </div>
+                
+                <div class="values-grid">
+                    <div class="value-group">
+                        <div class="value-icon">
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                        <h4 class="value-group-title">Think • Explore • Learn</h4>
+                        <div class="value-items">
+                            <div class="value-item">
+                                <p class="value-text">We Think</p>
+                            </div>
+                            <div class="value-item">
+                                <p class="value-text">We Explore</p>
+                            </div>
+                            <div class="value-item">
+                                <p class="value-text">We Learn</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="value-group">
+                        <div class="value-icon">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <h4 class="value-group-title">Listen • Respect • Care</h4>
+                        <div class="value-items">
+                            <div class="value-item">
+                                <p class="value-text">We Listen</p>
+                            </div>
+                            <div class="value-item">
+                                <p class="value-text">We Respect</p>
+                            </div>
+                            <div class="value-item">
+                                <p class="value-text">We Care</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="value-group">
+                        <div class="value-icon">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <h4 class="value-group-title">Speak • Participate • Strive</h4>
+                        <div class="value-items">
+                            <div class="value-item">
+                                <p class="value-text">We Speak Up</p>
+                            </div>
+                            <div class="value-item">
+                                <p class="value-text">We Participate</p>
+                            </div>
+                            <div class="value-item">
+                                <p class="value-text">We Strive</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-5">
+                    <p style="font-family: var(--font-secondary); font-size: 1rem; color: #2d2d2d; font-style: italic;">
+                        These values shape every aspect of our educational journey and community spirit at The British International School of Timisoara.
+                    </p>
+                </div>
+            </div>
+        </div>
+    `;
 }
 
 // Homepage with search and category filters (restored from old version)
@@ -844,6 +1004,8 @@ async function getHomePage() {
                 </div>
             </div>
         </div>
+        
+        ${getSchoolValuesSection()}
     `;
 }
 
@@ -2111,6 +2273,60 @@ function getContactsPage() {
                             <p style="color: #27ae60; font-weight: 600; text-align: center; margin-bottom: 15px;">Support Team & Proofreaders</p>
                             <p style="color: #888; text-align: center; line-height: 1.5;">
                                 Our amazing English teachers who guide us, proofread our work, and help us become better writers!
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- About The Student Voice Section -->
+        <div class="about-section py-5 mt-5" style="background-color: #f0e5cb;">
+            <div class="container">
+                <div class="text-center mb-5">
+                    <h2 class="about-title" style="color: #771510; font-weight: bold; font-size: 2.5rem;">About The Student Voice</h2>
+                    <p class="about-subtitle" style="color: #666; font-size: 1.1rem; max-width: 600px; margin: 0 auto;">
+                        The official digital newspaper of British International School of Timisoara, 
+                        bringing you the latest news, insights, and stories from our vibrant community.
+                    </p>
+                </div>
+                
+                <div class="row text-center">
+                    <div class="col-md-4 mb-4">
+                        <div class="about-feature">
+                            <div class="feature-icon mb-3">
+                                <i class="fas fa-pencil-alt" style="font-size: 3rem; color: #771510;"></i>
+                            </div>
+                            <h4 style="color: #771510; font-weight: 600;">Student Journalists</h4>
+                            <p style="color: #666;">
+                                Our dedicated team of student writers brings diverse perspectives 
+                                and authentic voices to every story we tell.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-4">
+                        <div class="about-feature">
+                            <div class="feature-icon mb-3">
+                                <i class="fas fa-bullseye" style="font-size: 3rem; color: #771510;"></i>
+                            </div>
+                            <h4 style="color: #771510; font-weight: 600;">Quality Content</h4>
+                            <p style="color: #666;">
+                                From breaking school news to in-depth features, we deliver 
+                                well-researched and engaging content for our community.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-4">
+                        <div class="about-feature">
+                            <div class="feature-icon mb-3">
+                                <i class="fas fa-comments" style="font-size: 3rem; color: #771510;"></i>
+                            </div>
+                            <h4 style="color: #771510; font-weight: 600;">BIST Community</h4>
+                            <p style="color: #666;">
+                                Connecting students, teachers, and families through shared 
+                                stories and experiences that matter to our school community.
                             </p>
                         </div>
                     </div>
